@@ -1,0 +1,203 @@
+@font-face {
+  font-family: "monogram";
+  src: url("/monogram.ttf") format("truetype");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #311047;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: "monogram", monospace;
+}
+
+canvas {
+  display: block;
+}
+
+.ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+#textbox-container {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  pointer-events: auto;
+}
+
+#textbox {
+  background: rgba(0, 0, 0, 0.8);
+  border: 3px solid white;
+  border-radius: 8px;
+  padding: 20px;
+  color: white;
+  font-size: 2rem;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  word-spacing: 0.2rem;
+  filter: drop-shadow(0 0.2rem 0.4rem rgba(0, 0, 0, 0.8));
+  text-align: center;
+}
+
+.ui-text {
+  margin: 0;
+  user-select: none;
+}
+
+.ui-close-button {
+  font-family: "monogram", monospace;
+  border-style: none;
+  border-radius: 3px;
+  padding: 8px 12px;
+  font-size: inherit;
+}
+
+.button-container {
+  align-self: flex-end;
+  margin-top: 10px;
+}
+
+.note {
+  position: absolute;
+  top: 1vh;
+  left: 1vh;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  font-size: 1.2rem;
+  user-select: none;
+}
+
+#dialogue {
+  margin: 0;
+  user-select: none;
+}
+
+#close {
+  font-family: "monogram", monospace;
+  border-style: none;
+  border-radius: 3px;
+  padding: 8px 12px;
+  font-size: inherit;
+  background: white;
+  color: black;
+  cursor: pointer;
+}
+
+#close:hover {
+  background: #ccc;
+}
+
+a {
+  color: #87ceeb;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #add8e6;
+}
+
+/* PDF Overlay Styles */
+#pdf-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 2000;
+  pointer-events: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#pdf-container {
+  width: 95%;
+  height: 98%;
+  max-width: 1400px;
+  max-height: 1200px;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+#pdf-header {
+  background: #311047;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: "monogram", monospace;
+}
+
+#pdf-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+#pdf-close {
+  background: transparent;
+  border: 2px solid white;
+  color: white;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "monogram", monospace;
+}
+
+#pdf-close:hover {
+  background: white;
+  color: #311047;
+}
+
+#pdf-viewer {
+  flex: 1;
+  border: none;
+}
+
+.pdf-button {
+  background: #87ceeb;
+  color: #311047;
+  border: 2px solid #87ceeb;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: "monogram", monospace;
+  font-size: 1rem;
+  margin: 5px 0;
+  transition: all 0.2s;
+}
+
+.pdf-button:hover {
+  background: #add8e6;
+  border-color: #add8e6;
+}

@@ -1,0 +1,19 @@
+{
+  "name": "2d-portfolio-game",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "kaboom": "^3000.1.17",
+    "terser": "^5.31.6",
+    "vite": "^5.4.1"
+  },
+  "dependencies": {
+    "create-vite": "^7.0.3"
+  }
+}

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/javascript.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2D Portfolio Game</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="ui">
+      <div class="note">
+        <p>Tap/Click around to move.</p>
+      </div>
+      <div id="textbox-container" style="display: none">
+        <div id="textbox">
+          <p id="dialogue"></p>
+          <div class="button-container">
+            <button id="close">Close</button>
+          </div>
+        </div>
+      </div>
+      <div id="pdf-overlay" style="display: none">
+        <div id="pdf-container">
+          <div id="pdf-header">
+            <h3>Curriculum Vitae</h3>
+            <button id="pdf-close">✕</button>
+          </div>
+          <iframe id="pdf-viewer" src="" width="100%" height="100%"></iframe>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
