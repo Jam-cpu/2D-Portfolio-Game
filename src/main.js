@@ -2,10 +2,12 @@ import { dialogueData, scaleFactor } from "./constants";
 import { k } from "./kaboomCtx";
 import { displayDialogue, displayPDF, setCamScale } from "./utils";
 
-k.loadSprite("spritesheet", "/spritesheet.png", {
+k.loadSprite("spritesheet", "/spritesheet.png",
+{
   sliceX: 39,
   sliceY: 31,
-  anims: {
+  anims:
+  {
     "idle-down": 936,
     "walk-down": { from: 936, to: 939, loop: true, speed: 8 },
     "idle-side": 975,
@@ -16,53 +18,44 @@ k.loadSprite("spritesheet", "/spritesheet.png", {
 });
 
 k.loadSprite("map", "/map.png");
-
 k.loadSprite("lampost", "/lampost.png");
-
 k.loadSprite("rupee", "/rupee.png");
-
 k.loadSound("background-music", "/Eterna City (Night).mp3");
-
 k.loadSound("tp-press-start", "/TP_PressStart.wav");
-
 k.loadSound("tp-get-rupee", "/TP_Get_Rupee.wav");
-
 k.setBackground(k.Color.fromHex("#311047"));
 
 // Global function to handle PDF opening from dialogue buttons
-window.openPDF = (pdfPath) => {
-  displayPDF(pdfPath, () => {
+window.openPDF = (pdfPath) =>
+{
+  displayPDF(pdfPath, () =>
+  {
     // Re-enable player movement after PDF closes
-    if (window.currentPlayer) {
+    if (window.currentPlayer)
+    {
       window.currentPlayer.isInDialogue = false;
     }
   });
 };
 
-k.scene("main", async () => {
+k.scene("main", async () =>
+{
   // Start background music with fade in
-  const music = k.play("background-music", {
-    volume: 0,
-    loop: true,
-  });
+  const music = k.play("background-music", {volume: 0, loop: true});
 
   // Fade in the music over 3 seconds
-  k.tween(0, 0.5, 3, (val) => {
-    music.volume = val;
-  });
+  k.tween(0, 0.5, 3, (val) => { music.volume = val; });
 
   // Function to fade out music
-  const fadeOutMusic = () => {
-    k.tween(music.volume, 0, 2, (val) => {
-      music.volume = val;
-    }, k.easings.easeOutQuad);
+  const fadeOutMusic = () =>
+  {
+    k.tween(music.volume, 0, 2, (val) => { music.volume = val; }, k.easings.easeOutQuad);
   };
 
   // Function to fade in music
-  const fadeInMusic = () => {
-    k.tween(music.volume, 0.5, 2, (val) => {
-      music.volume = val;
-    }, k.easings.easeInQuad);
+  const fadeInMusic = () =>
+  {
+    k.tween(music.volume, 0.5, 2, (val) => { music.volume = val; }, k.easings.easeInQuad);
   };
 
   const mapData = await fetch("/map.json").then((res) => res.json());
@@ -72,9 +65,7 @@ k.scene("main", async () => {
 
   const player = k.make([
     k.sprite("spritesheet", { anim: "idle-down" }),
-    k.area({
-      shape: new k.Rect(k.vec2(0, 3), 10, 10),
-    }),
+    k.area({shape: new k.Rect(k.vec2(0, 3), 10, 10)}),
     k.body(),
     k.anchor("center"),
     k.pos(),
@@ -88,12 +79,16 @@ k.scene("main", async () => {
     "player",
   ]);
 
-  for (const layer of layers) {
-    if (layer.name === "Boundary") {
-      for (const boundary of layer.objects) {
+  for (const layer of layers)
+  {
+    if (layer.name === "Boundary")
+    {
+      for (const boundary of layer.objects)
+      {
         // Add collision for ALL objects (walls and interactive objects)
         map.add([
-          k.area({
+          k.area(
+          {
             shape: new k.Rect(k.vec2(0), boundary.width, boundary.height),
           }),
           k.body({ isStatic: true }),
@@ -102,12 +97,15 @@ k.scene("main", async () => {
         ]);
 
         // Only add dialogue for objects that have names (interactive objects)
-        if (boundary.name) {
-          player.onCollide(boundary.name, () => {
+        if (boundary.name)
+        {
+          player.onCollide(boundary.name, () =>
+          {
             player.isInDialogue = true;
 
             // Play special sound effect for master sword
-            if (boundary.name === "master sword") {
+            if (boundary.name === "master sword")
+            {
               k.play("tp-press-start", { volume: 0.7 });
             }
 
@@ -121,9 +119,12 @@ k.scene("main", async () => {
       continue;
     }
 
-    if (layer.name === "Spawn") {
-      for (const entity of layer.objects) {
-        if (entity.name === "player" || !entity.name) {
+    if (layer.name === "Spawn")
+    {
+      for (const entity of layer.objects)
+      {
+        if (entity.name === "player" || !entity.name)
+        {
           // Player spawn (first unnamed or named "player" spawn point)
           player.pos = k.vec2(
             (map.pos.x + entity.x) * scaleFactor,
@@ -134,7 +135,8 @@ k.scene("main", async () => {
           window.currentPlayer = player;
 
           // Add rupee pickup collision handler
-          player.onCollide("rupee", (rupee) => {
+          player.onCollide("rupee", (rupee) =>
+          {
             // Play rupee pickup sound
             k.play("tp-get-rupee", { volume: 0.8 });
             // Make the rupee disappear
@@ -144,9 +146,12 @@ k.scene("main", async () => {
       }
     }
 
-    if (layer.name === "Foreground") {
-      for (const entity of layer.objects) {
-        if (entity.name === "Lampost") {
+    if (layer.name === "Foreground")
+    {
+      for (const entity of layer.objects)
+      {
+        if (entity.name === "Lampost")
+        {
           // Create lamppost entity that renders in front of player
           k.add([
             k.sprite("lampost"),
@@ -158,7 +163,8 @@ k.scene("main", async () => {
           ]);
         }
 
-        if (entity.name === "rupee") {
+        if (entity.name === "rupee")
+        {
           // Create rupee entity centered in the boundary box
           const rupeeObj = k.add([
             k.sprite("rupee"),
@@ -182,13 +188,12 @@ k.scene("main", async () => {
 
   setCamScale(k);
 
-  k.onResize(() => {
-    setCamScale(k);
-  });  k.onUpdate(() => {
-    k.camPos(player.worldPos().x, player.worldPos().y + 100);
-  });
+  k.onResize(() => { setCamScale(k); });
 
-  k.onMouseDown((mouseBtn) => {
+  k.onUpdate(() => { k.camPos(player.worldPos().x, player.worldPos().y + 100); });
+
+  k.onMouseDown((mouseBtn) =>
+  {
     if (mouseBtn !== "left" || player.isInDialogue) return;
 
     const worldMousePos = k.toWorld(k.mousePos());
@@ -203,7 +208,8 @@ k.scene("main", async () => {
       mouseAngle > lowerBound &&
       mouseAngle < upperBound &&
       player.curAnim() !== "walk-up"
-    ) {
+    )
+    {
       player.play("walk-up");
       player.direction = "up";
       return;
@@ -213,20 +219,23 @@ k.scene("main", async () => {
       mouseAngle < -lowerBound &&
       mouseAngle > -upperBound &&
       player.curAnim() !== "walk-down"
-    ) {
+    )
+    {
       player.play("walk-down");
       player.direction = "down";
       return;
     }
 
-    if (Math.abs(mouseAngle) > upperBound) {
+    if (Math.abs(mouseAngle) > upperBound)
+    {
       player.flipX = false;
       if (player.curAnim() !== "walk-side") player.play("walk-side");
       player.direction = "right";
       return;
     }
 
-    if (Math.abs(mouseAngle) < lowerBound) {
+    if (Math.abs(mouseAngle) < lowerBound)
+    {
       player.flipX = true;
       if (player.curAnim() !== "walk-side") player.play("walk-side");
       player.direction = "left";
@@ -234,12 +243,15 @@ k.scene("main", async () => {
     }
   });
 
-  k.onMouseRelease(() => {
-    if (player.direction === "down") {
+  k.onMouseRelease(() =>
+  {
+    if (player.direction === "down")
+    {
       player.play("idle-down");
       return;
     }
-    if (player.direction === "up") {
+    if (player.direction === "up")
+    {
       player.play("idle-up");
       return;
     }
@@ -248,24 +260,16 @@ k.scene("main", async () => {
   });
 
   // Debug mode - press D to toggle collision boundaries visibility
-  k.onKeyPress("d", () => {
-    k.debug.inspect = !k.debug.inspect;
-  });
+  k.onKeyPress("d", () => { k.debug.inspect = !k.debug.inspect; });
 
   // Press M to fade out music (for demonstration)
-  k.onKeyPress("m", () => {
-    fadeOutMusic();
-  });
+  k.onKeyPress("m", () => { fadeOutMusic(); });
 
   // Press N to fade in music (restore music)
-  k.onKeyPress("n", () => {
-    fadeInMusic();
-  });
+  k.onKeyPress("n", () => { fadeInMusic(); });
 
   // Scene cleanup - fade out music when leaving scene
-  k.onSceneLeave(() => {
-    fadeOutMusic();
-  });
+  k.onSceneLeave(() => { fadeOutMusic(); });
 });
 
 k.go("main");

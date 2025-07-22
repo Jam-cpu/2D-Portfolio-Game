@@ -1,4 +1,5 @@
-export function displayDialogue(text, onDisplayEnd) {
+export function displayDialogue(text, onDisplayEnd)
+{
   const dialogueUI = document.getElementById("textbox-container");
   const dialogue = document.getElementById("dialogue");
 
@@ -9,8 +10,10 @@ export function displayDialogue(text, onDisplayEnd) {
 
   let index = 0;
   let currentText = "";
-  const intervalRef = setInterval(() => {
-    if (index < htmlText.length) {
+  const intervalRef = setInterval(() =>
+  {
+    if (index < htmlText.length)
+    {
       currentText += htmlText[index];
       dialogue.innerHTML = currentText;
       index++;
@@ -22,7 +25,8 @@ export function displayDialogue(text, onDisplayEnd) {
 
   const closeBtn = document.getElementById("close");
 
-  function onCloseBtnClick() {
+  function onCloseBtnClick()
+  {
     onDisplayEnd();
     dialogueUI.style.display = "none";
     dialogue.innerHTML = "";
@@ -33,7 +37,8 @@ export function displayDialogue(text, onDisplayEnd) {
   closeBtn.addEventListener("click", onCloseBtnClick);
 }
 
-export function displayPDF(pdfPath, onDisplayEnd) {
+export function displayPDF(pdfPath, onDisplayEnd)
+{
   const pdfOverlay = document.getElementById("pdf-overlay");
   const pdfViewer = document.getElementById("pdf-viewer");
   const pdfClose = document.getElementById("pdf-close");
@@ -44,7 +49,8 @@ export function displayPDF(pdfPath, onDisplayEnd) {
   // Show the overlay
   pdfOverlay.style.display = "flex";
 
-  function onCloseBtnClick() {
+  function onCloseBtnClick()
+  {
     onDisplayEnd();
     pdfOverlay.style.display = "none";
     pdfViewer.src = ""; // Clear the source to stop loading
@@ -55,18 +61,24 @@ export function displayPDF(pdfPath, onDisplayEnd) {
   pdfClose.addEventListener("click", onCloseBtnClick);
 
   // Close when clicking outside the PDF container
-  pdfOverlay.addEventListener("click", (e) => {
-    if (e.target === pdfOverlay) {
+  pdfOverlay.addEventListener("click", (e) =>
+  {
+    if (e.target === pdfOverlay)
+    {
       onCloseBtnClick();
     }
   });
 }
 
-export function setCamScale(k) {
+export function setCamScale(k)
+{
   const resizeFactor = k.width() / k.height();
-  if (resizeFactor < 1) {
+  if (resizeFactor < 1)
+  {
     k.camScale(k.vec2(1));
-  } else {
+  }
+  else
+  {
     k.camScale(k.vec2(1.5));
   }
 }

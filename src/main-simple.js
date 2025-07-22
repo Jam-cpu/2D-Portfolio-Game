@@ -2,10 +2,12 @@ import { dialogueData, scaleFactor } from "./constants";
 import { k } from "./kaboomCtx";
 import { displayDialogue, setCamScale } from "./utils";
 
-k.loadSprite("spritesheet", "/spritesheet.png", {
+k.loadSprite("spritesheet", "/spritesheet.png",
+{
   sliceX: 39,
   sliceY: 31,
-  anims: {
+  anims:
+  {
     "idle-down": 936,
     "walk-down": { from: 936, to: 939, loop: true, speed: 8 },
     "idle-side": 975,
@@ -19,14 +21,16 @@ k.loadSprite("map", "/map.png");
 
 k.setBackground(k.Color.fromHex("#311047"));
 
-k.scene("main", () => {
+k.scene("main", () =>
+{
   // Add the map
   const map = k.add([k.sprite("map"), k.pos(0), k.scale(scaleFactor)]);
 
   // Create the player
   const player = k.add([
     k.sprite("spritesheet", { anim: "idle-down" }),
-    k.area({
+    k.area(
+    {
       shape: new k.Rect(k.vec2(0, 3), 10, 10),
     }),
     k.body(),
@@ -44,16 +48,19 @@ k.scene("main", () => {
   // Set up camera
   setCamScale(k);
 
-  k.onResize(() => {
+  k.onResize(() =>
+  {
     setCamScale(k);
   });
 
-  k.onUpdate(() => {
+  k.onUpdate(() =>
+  {
     k.camPos(player.worldPos().x, player.worldPos().y + 100);
   });
 
   // Handle mouse input for movement
-  k.onMouseDown((mouseBtn) => {
+  k.onMouseDown((mouseBtn) =>
+  {
     if (mouseBtn !== "left" || player.isInDialogue) return;
 
     const worldMousePos = k.toWorld(k.mousePos());
@@ -68,7 +75,8 @@ k.scene("main", () => {
       mouseAngle > lowerBound &&
       mouseAngle < upperBound &&
       player.curAnim() !== "walk-up"
-    ) {
+    )
+    {
       player.play("walk-up");
       player.direction = "up";
       return;
@@ -78,20 +86,23 @@ k.scene("main", () => {
       mouseAngle < -lowerBound &&
       mouseAngle > -upperBound &&
       player.curAnim() !== "walk-down"
-    ) {
+    )
+    {
       player.play("walk-down");
       player.direction = "down";
       return;
     }
 
-    if (Math.abs(mouseAngle) > upperBound) {
+    if (Math.abs(mouseAngle) > upperBound)
+    {
       player.flipX = false;
       if (player.curAnim() !== "walk-side") player.play("walk-side");
       player.direction = "right";
       return;
     }
 
-    if (Math.abs(mouseAngle) < lowerBound) {
+    if (Math.abs(mouseAngle) < lowerBound)
+    {
       player.flipX = true;
       if (player.curAnim() !== "walk-side") player.play("walk-side");
       player.direction = "left";
@@ -99,12 +110,15 @@ k.scene("main", () => {
     }
   });
 
-  k.onMouseRelease(() => {
-    if (player.direction === "down") {
+  k.onMouseRelease(() =>
+  {
+    if (player.direction === "down")
+    {
       player.play("idle-down");
       return;
     }
-    if (player.direction === "up") {
+    if (player.direction === "up")
+    {
       player.play("idle-up");
       return;
     }
@@ -122,7 +136,8 @@ k.scene("main", () => {
     "test-object"
   ]);
 
-  player.onCollide("test-object", () => {
+  player.onCollide("test-object", () =>
+  {
     player.isInDialogue = true;
     displayDialogue(
       "This is a test object! The collision system works.",

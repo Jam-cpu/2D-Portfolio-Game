@@ -7,10 +7,12 @@ console.log("Starting game...");
 
 // Load both sprites
 k.loadSprite("map", "/map.png");
-k.loadSprite("spritesheet", "/spritesheet.png", {
+k.loadSprite("spritesheet", "/spritesheet.png",
+{
   sliceX: 39,
   sliceY: 31,
-  anims: {
+  anims:
+  {
     "idle-down": 936,
     "walk-down": { from: 936, to: 939, loop: true, speed: 8 },
     "idle-side": 975,
@@ -20,26 +22,32 @@ k.loadSprite("spritesheet", "/spritesheet.png", {
   },
 });
 
-k.scene("main", () => {
+k.scene("main", () =>
+{
   console.log("Scene started");
 
   // Try to add the map first
-  try {
+  try
+  {
     const map = k.add([
       k.sprite("map"),
       k.pos(0),
       k.scale(scaleFactor)
     ]);
     console.log("Map added successfully");
-  } catch (error) {
+  }
+  catch (error)
+  {
     console.error("Error adding map:", error);
   }
 
   // Try to add a player
-  try {
+  try
+  {
     const player = k.add([
       k.sprite("spritesheet", { anim: "idle-down" }),
-      k.area({
+      k.area(
+      {
         shape: new k.Rect(k.vec2(0, 3), 10, 10),
       }),
       k.body(),
@@ -54,7 +62,9 @@ k.scene("main", () => {
       "player",
     ]);
     console.log("Player added successfully");
-  } catch (error) {
+  }
+  catch (error)
+  {
     console.error("Error adding player:", error);
   }
 
