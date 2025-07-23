@@ -17,12 +17,25 @@ k.loadSprite("spritesheet", "/spritesheet.png",
   },
 });
 
-k.loadSprite("map", "/map.png");
+k.loadSprite("map",     "/map.png");
 k.loadSprite("lampost", "/lampost.png");
-k.loadSprite("rupee", "/rupee.png");
+k.loadSprite("rupee",   "/rupee.png");
+k.loadSprite("chicken", "/Chicken Sprite Sheet.png", {
+  sliceX: 8,
+  sliceY: 10,
+  anims: {
+    "idle": { from: 0, to: 7, loop: true, speed: 4 },
+    "eat": { from: 8, to: 15, loop: true, speed: 4 },
+    "walk": { from: 16, to: 23, loop: true, speed: 6 },
+    "happy": { from: 24, to: 31, loop: true, speed: 4 },
+    "flap": { from: 32, to: 39, loop: true, speed: 6 }, // Example: add flap animation as looped
+  }
+});
+
 k.loadSound("background-music", "/Eterna City (Night).mp3");
-k.loadSound("tp-press-start", "/TP_PressStart.wav");
-k.loadSound("tp-get-rupee", "/TP_Get_Rupee.wav");
+k.loadSound("tp-press-start",   "/TP_PressStart.wav");
+k.loadSound("tp-get-rupee",     "/TP_Get_Rupee.wav");
+
 k.setBackground(k.Color.fromHex("#311047"));
 
 // Global function to handle PDF opening from dialogue buttons
@@ -179,6 +192,104 @@ k.scene("main", async () =>
             "rupee", // Tag for collision detection
             "foreground"
           ]);
+        }
+      }
+    }
+
+    if (layer.name === "Chickens")
+    {
+      for (const entity of layer.objects)
+      {
+        if (entity.name === "chicken")
+        {
+          // Create animated chicken
+          const chicken = k.add([
+            k.sprite("chicken", { anim: "idle" }),
+            k.pos(
+              entity.x * scaleFactor, // Use exact pin position
+              entity.y * scaleFactor  // Use exact pin position
+            ),
+            k.anchor("center"),
+            k.scale(scaleFactor * 0.65), // Make chicken a bit smaller
+            k.z(100),
+            k.body(), // Add physics body so chicken collides with walls/static boundaries
+            k.area({
+              shape: new k.Rect(k.vec2(-4, -4), 8, 8), // Even smaller collision box
+            }),
+            {
+              wanderTimer: 0,
+              wanderDirection: k.vec2(0, 0),
+              speed: 10,
+              originalPos: k.vec2(entity.x * scaleFactor, entity.y * scaleFactor), // Store original position
+              maxWanderDistance: 40, // Max distance from original position
+              isMoving: false,
+              pauseTimer: 0,
+            },
+            "chicken",
+            "foreground"
+          ]);
+
+          // Make chicken wander around in small area
+          chicken.onUpdate(() =>
+          {
+            if (chicken.isMoving)
+            {
+              chicken.wanderTimer -= k.dt();
+              if (chicken.wanderTimer <= 0)
+              {
+                chicken.isMoving = false;
+                chicken.pauseTimer = k.rand(2, 5);
+                chicken.wanderDirection = k.vec2(0, 0);
+                // Randomly choose pause animation
+                const anims = ["idle", "eat", "happy"];
+                chicken.play(anims[Math.floor(k.rand(0, anims.length))]);
+              }
+              else
+              {
+                const distanceFromOriginal = chicken.pos.dist(chicken.originalPos);
+                if (distanceFromOriginal > chicken.maxWanderDistance)
+                {
+                  chicken.wanderDirection = chicken.originalPos.sub(chicken.pos).unit();
+                }
+                chicken.move(chicken.wanderDirection.scale(chicken.speed));
+                // Use walk animation while moving
+                chicken.play("walk");
+              }
+            }
+            else
+            {
+              chicken.pauseTimer -= k.dt();
+              if (chicken.pauseTimer <= 0)
+              {
+                chicken.isMoving = true;
+                chicken.wanderTimer = k.rand(1, 2.5);
+                const distanceFromOriginal = chicken.pos.dist(chicken.originalPos);
+                if (distanceFromOriginal > chicken.maxWanderDistance * 0.7)
+                {
+                  const towardsCenter = chicken.originalPos.sub(chicken.pos).unit();
+                  const randomDirection = k.vec2(k.rand(-1, 1), k.rand(-1, 1)).unit();
+                  chicken.wanderDirection = towardsCenter.scale(0.7).add(randomDirection.scale(0.3)).unit();
+                }
+                else
+                {
+                  chicken.wanderDirection = k.vec2(k.rand(-1, 1), k.rand(-1, 1)).unit();
+                }
+              }
+            }
+          });
+
+          // Player interaction with chicken
+          player.onCollide("chicken", () =>
+          {
+            if (!player.isInDialogue)
+            {
+              player.isInDialogue = true;
+              displayDialogue(
+                dialogueData["chicken"] || "Bawk bawk! 🐔",
+                () => (player.isInDialogue = false)
+              );
+            }
+          });
         }
       }
     }

@@ -29,4 +29,5 @@ export const dialogueData =
         PLAY`,
     "sign": `ハクタイシティ \n Eterna City`,
     "live, laugh, love": `Live, Laugh, Love`,
+    "chicken": `Bawk bawk! 🐔\nThis friendly chicken seems to enjoy wandering around the room!\nIt adds some life to the place and occasionally finds interesting things to peck at.`,
 };
