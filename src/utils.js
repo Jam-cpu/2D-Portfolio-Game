@@ -6,12 +6,11 @@ export function displayDialogue(text, onDisplayEnd)
   dialogueUI.style.display = "block";
 
   // Convert \n to <br> tags for HTML line breaks
-  const htmlText = text.replace(/\n/g, '<br>');
+  const htmlText = text.replace(/\n/g, "<br>");
 
   let index = 0;
   let currentText = "";
-  const intervalRef = setInterval(() =>
-  {
+  const intervalRef = setInterval(() => {
     if (index < htmlText.length)
     {
       currentText += htmlText[index];
@@ -61,8 +60,7 @@ export function displayPDF(pdfPath, onDisplayEnd)
   pdfClose.addEventListener("click", onCloseBtnClick);
 
   // Close when clicking outside the PDF container
-  pdfOverlay.addEventListener("click", (e) =>
-  {
+  pdfOverlay.addEventListener("click", (e) => {
     if (e.target === pdfOverlay)
     {
       onCloseBtnClick();

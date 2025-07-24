@@ -201,3 +201,22 @@ a:hover {
   background: #add8e6;
   border-color: #add8e6;
 }
+
+.play-button {
+  background: #ff6b6b;
+  color: white;
+  border: 2px solid #ff6b6b;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: "monogram", monospace;
+  font-size: 1rem;
+  margin: 5px 0;
+  transition: all 0.2s;
+}
+
+.play-button:hover {
+  background: #ff5252;
+  border-color: #ff5252;
+  transform: scale(1.05);
+}
