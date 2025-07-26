@@ -129,9 +129,6 @@ k.scene("main", async () => {
 
   const map = k.add([k.sprite("map"), k.pos(0), k.scale(scaleFactor)]);
 
-  // Rupee counter state
-  let rupeeCount = 0;
-
   // Create rupee icon overlay
   const rupeeIconOverlay = k.add([
     k.sprite("rupeeiconresize"),
@@ -143,7 +140,7 @@ k.scene("main", async () => {
 
   // Create rupee counter text overlay
   const rupeeCounterOverlay = k.add([
-    k.text(rupeeCount.toString(), {
+    k.text("0", {
       size: 45,
     }),
     k.pos(73, 35),
@@ -152,11 +149,33 @@ k.scene("main", async () => {
     k.z(200),
   ]);
 
-  // Update counter display function
-  function updateRupeeCounter()
-  {
-    rupeeCounterOverlay.text = rupeeCount.toString();
-  }
+  // Create rupee counter with custom events
+  const rupeeCounterManager = {
+    count: 0,
+    overlay: rupeeCounterOverlay,
+
+    // Event handlers
+    init() {
+      this.overlay.on("update", () => {
+        this.overlay.text = this.count.toString();
+      });
+
+      this.overlay.on("increment", (amount = 1) => {
+        this.count += amount;
+        this.overlay.trigger("update");
+
+        // Trigger achievements or special effects
+        if (this.count >= 10 && this.count < 20) {
+          player.trigger("achievement", "collector");
+        } else if (this.count >= 50) {
+          player.trigger("achievement", "treasure_hunter");
+        }
+      });
+    }
+  };
+
+  // Initialize rupee counter events
+  rupeeCounterManager.init();
 
   const player = k.make([
     k.sprite("spritesheet", { anim: "idle-down" }),
@@ -173,6 +192,30 @@ k.scene("main", async () => {
     },
     "player",
   ]);
+
+  // Setup player custom events
+  player.on("collectRupee", (rupee) => {
+    // Play rupee pickup sound
+    k.play("tp-get-rupee", { volume: 0.8 });
+    // Make the rupee disappear
+    rupee.destroy();
+    // Update counter through event system
+    rupeeCounterManager.overlay.trigger("increment");
+  });
+
+  player.on("hitPot", (pot) => {
+    if (pot.originalName === "pot 2" && !player.isInDialogue) {
+      pot.trigger("showDialogue");
+    } else if (pot.originalName !== "pot 2") {
+      pot.trigger("break");
+    }
+  });
+
+  player.on("achievement", (type) => {
+    // Could add visual effects, sounds, or notifications here
+    console.log(`Achievement unlocked: ${type}!`);
+    // Future: Display achievement popup, play special sound, etc.
+  });
 
   for (const layer of layers)
   {
@@ -214,6 +257,43 @@ k.scene("main", async () => {
                 originalName: boundary.name // Store the original boundary name for dialogue
               }
             ]);
+
+            // Setup pot custom events
+            potSprite.on("showDialogue", () => {
+              player.isInDialogue = true;
+              displayDialogue(
+                dialogueData["pot 2"] || "Clank!",
+                () => {
+                  player.isInDialogue = false;
+                  potSprite.trigger("break");
+                }
+              );
+            });
+
+            potSprite.on("break", () => {
+              // Play pot shatter sound
+              k.play("pot-shatter", { volume: 0.8 });
+
+              // Create a rupee at the pot's position immediately
+              const rupeeFromPot = k.add([
+                k.sprite("rupee"),
+                k.pos(potSprite.pos.x, potSprite.pos.y), // Same position as the pot
+                k.anchor("center"),
+                k.scale(scaleFactor),
+                k.z(100),
+                k.area(),
+                "rupee",
+                "foreground"
+              ]);
+
+              // Remove the boundary collision if it exists
+              if (potSprite.boundaryRef)
+              {
+                potSprite.boundaryRef.destroy();
+              }
+              // Make the pot disappear
+              potSprite.destroy();
+            });
           }
           else
           {
@@ -255,65 +335,14 @@ k.scene("main", async () => {
 
           // Add rupee pickup collision handler
           player.onCollide("rupee", (rupee) => {
-            // Play rupee pickup sound
-            k.play("tp-get-rupee", { volume: 0.8 });
-            // Make the rupee disappear
-            rupee.destroy();
-            // Increment rupee counter
-            rupeeCount++;
-            // Update the counter display
-            updateRupeeCounter();
+            player.trigger("collectRupee", rupee);
           });
 
           // Add pot breaking collision handler
           player.onCollide("pot", (pot) => {
-            // Check if this is pot 2 and if we should show dialogue first
-            if (pot.originalName === "pot 2" && !player.isInDialogue)
-            {
-              // Show dialogue first for pot 2
-              player.isInDialogue = true;
-              displayDialogue(
-                dialogueData["pot 2"] || "Clank!",
-                () => {
-                  player.isInDialogue = false;
-                  // After dialogue, break the pot
-                  breakPot(pot);
-                }
-              );
-            }
-            else if (pot.originalName !== "pot 2")
-            {
-              // For other pots, break immediately
-              breakPot(pot);
-            }
+            player.trigger("hitPot", pot);
           });
 
-          // Helper function to break pots
-          function breakPot(pot)
-          {
-            // Play pot shatter sound
-            k.play("pot-shatter", { volume: 0.8 });
-
-            // Create a rupee at the pot's position immediately
-            const rupeeFromPot = k.add([
-              k.sprite("rupee"),
-              k.pos(pot.pos.x, pot.pos.y), // Same position as the pot
-              k.anchor("center"),
-              k.scale(scaleFactor),
-              k.z(100),
-              k.area(),
-              "rupee",
-              "foreground"
-            ]);
-
-            // Remove the boundary collision if it exists
-            if (pot.boundaryRef)
-            {
-              pot.boundaryRef.destroy();
-            }
-            // Make the pot disappear
-            pot.destroy();
-          }
         }
       }
     }
@@ -434,38 +463,87 @@ k.scene("main", async () => {
 
           // Add wander behavior to both chickens
           [chicken1, chicken2].forEach((chicken) => {
-            // Make chicken wander around in small area
+            // Setup chicken custom events
+            chicken.on("startWandering", () => {
+              chicken.isMoving = true;
+              chicken.play("walk");
+
+              // Set random wander timer based on chicken type
+              if (chicken.isSecondChicken)
+              {
+                chicken.wanderTimer = k.rand(0.5, 3);
+              }
+              else
+              {
+                chicken.wanderTimer = k.rand(1, 2.5);
+              }
+
+              // Calculate wander direction
+              const distanceFromOriginal = chicken.pos.dist(chicken.originalPos);
+              if (distanceFromOriginal > chicken.maxWanderDistance * 0.7)
+              {
+                const towardsCenter = chicken.originalPos.sub(chicken.pos).unit();
+                const randomDirection = k.vec2(k.rand(-1, 1), k.rand(-1, 1)).unit();
+
+                if (chicken.isSecondChicken)
+                {
+                  chicken.wanderDirection = towardsCenter.scale(0.5).add(randomDirection.scale(0.5)).unit();
+                }
+                else
+                {
+                  chicken.wanderDirection = towardsCenter.scale(0.7).add(randomDirection.scale(0.3)).unit();
+                }
+              }
+              else
+              {
+                if (chicken.isSecondChicken)
+                {
+                  chicken.wanderDirection = k.vec2(k.rand(-1.5, 1.5), k.rand(-1.5, 1.5)).unit();
+                }
+                else
+                {
+                  chicken.wanderDirection = k.vec2(k.rand(-1, 1), k.rand(-1, 1)).unit();
+                }
+              }
+            });
+
+            chicken.on("stopWandering", () => {
+              chicken.isMoving = false;
+              chicken.wanderDirection = k.vec2(0, 0);
+
+              // Set pause timer based on chicken type
+              if (chicken.isSecondChicken)
+              {
+                chicken.pauseTimer = k.rand(1, 6);
+              }
+              else
+              {
+                chicken.pauseTimer = k.rand(2, 5);
+              }
+
+              // Randomly choose pause animation
+              const anims = ["idle", "eat", "happy"];
+              chicken.play(anims[Math.floor(k.rand(0, anims.length))]);
+            });
+
+            // Simplified onUpdate - just timer management and movement
             chicken.onUpdate(() => {
               if (chicken.isMoving)
               {
                 chicken.wanderTimer -= k.dt();
                 if (chicken.wanderTimer <= 0)
                 {
-                  chicken.isMoving = false;
-                  // Second chicken has more random pause times
-                  if (chicken.isSecondChicken)
-                  {
-                    chicken.pauseTimer = k.rand(1, 6); // More varied pause times
-                  }
-                  else
-                  {
-                    chicken.pauseTimer = k.rand(2, 5);
-                  }
-                  chicken.wanderDirection = k.vec2(0, 0);
-                  // Randomly choose pause animation
-                  const anims = ["idle", "eat", "happy"];
-                  chicken.play(anims[Math.floor(k.rand(0, anims.length))]);
+                  chicken.trigger("stopWandering");
                 }
                 else
                 {
+                  // Check if too far from original position
                   const distanceFromOriginal = chicken.pos.dist(chicken.originalPos);
                   if (distanceFromOriginal > chicken.maxWanderDistance)
                   {
                     chicken.wanderDirection = chicken.originalPos.sub(chicken.pos).unit();
                   }
                   chicken.move(chicken.wanderDirection.scale(chicken.speed));
-                  // Use walk animation while moving
-                  chicken.play("walk");
                 }
               }
               else
@@ -473,49 +551,13 @@ k.scene("main", async () => {
                 chicken.pauseTimer -= k.dt();
                 if (chicken.pauseTimer <= 0)
                 {
-                  chicken.isMoving = true;
-                  // Second chicken has more random movement patterns
-                  if (chicken.isSecondChicken)
-                  {
-                    chicken.wanderTimer = k.rand(0.5, 3); // More varied movement times
-                  }
-                  else
-                  {
-                    chicken.wanderTimer = k.rand(1, 2.5);
-                  }
-                  const distanceFromOriginal = chicken.pos.dist(chicken.originalPos);
-                  if (distanceFromOriginal > chicken.maxWanderDistance * 0.7)
-                  {
-                    const towardsCenter = chicken.originalPos.sub(chicken.pos).unit();
-                    const randomDirection = k.vec2(k.rand(-1, 1), k.rand(-1, 1)).unit();
-                    // Second chicken has more random direction changes
-                    if (chicken.isSecondChicken)
-                    {
-                      chicken.wanderDirection = towardsCenter.scale(0.5).add(randomDirection.scale(0.5)).unit();
-                    }
-                    else
-                    {
-                      chicken.wanderDirection = towardsCenter.scale(0.7).add(randomDirection.scale(0.3)).unit();
-                    }
-                  }
-                  else
-                  {
-                    // Second chicken changes direction more frequently and randomly
-                    if (chicken.isSecondChicken)
-                    {
-                      chicken.wanderDirection = k.vec2(k.rand(-1.5, 1.5), k.rand(-1.5, 1.5)).unit();
-                    }
-                    else
-                    {
-                      chicken.wanderDirection = k.vec2(k.rand(-1, 1), k.rand(-1, 1)).unit();
-                    }
-                  }
+                  chicken.trigger("startWandering");
                 }
               }
             });
 
-            // Player interaction with chicken
-            player.onCollide("chicken", () => {
+            // Player interaction with chicken - using events
+            chicken.on("interactWithPlayer", () => {
               if (!player.isInDialogue)
               {
                 player.isInDialogue = true;
@@ -525,6 +567,11 @@ k.scene("main", async () => {
                 );
               }
             });
+          });
+
+          // Setup player-chicken collision outside the forEach loop
+          player.onCollide("chicken", (chicken) => {
+            chicken.trigger("interactWithPlayer");
           });
         }
       }
