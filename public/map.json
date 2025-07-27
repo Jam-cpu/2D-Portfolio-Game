@@ -65,7 +65,7 @@
          "y":0
         }, 
         {
-         "data":[0, 0, 0, 0, 0, 0, 0, 319, 0, 319, 124, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         "data":[15208, 0, 0, 0, 0, 0, 0, 319, 0, 319, 124, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 358, 0, 358, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 79, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -1110,6 +1110,17 @@
                  "width":16,
                  "x":32,
                  "y":196
+                }, 
+                {
+                 "height":8,
+                 "id":88,
+                 "name":"mariopipe",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":12,
+                 "x":4,
+                 "y":4
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -1211,7 +1222,7 @@
          "y":0
         }],
  "nextlayerid":18,
- "nextobjectid":88,
+ "nextobjectid":89,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
@@ -1603,6 +1614,20 @@
          "imagewidth":16,
          "margin":0,
          "name":"pixel-art-old-video-..._imresizer",
+         "spacing":0,
+         "tilecount":1,
+         "tileheight":16,
+         "tilewidth":16,
+         "transparentcolor":"#ff00ff"
+        }, 
+        {
+         "columns":1,
+         "firstgid":15208,
+         "image":"tubo-mario-small.png",
+         "imageheight":18,
+         "imagewidth":18,
+         "margin":0,
+         "name":"tubo-mario-small",
          "spacing":0,
          "tilecount":1,
          "tileheight":16,
