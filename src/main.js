@@ -613,7 +613,7 @@ k.scene("main", async () => {
             k.z(100),
             k.body(), // Add physics body so chicken collides with walls/static boundaries
             k.area({
-              shape: new k.Rect(k.vec2(-6, -6), 12, 12), // Bigger collision box (12x12 pixels centered)
+              shape: new k.Rect(k.vec2(0, 0), 8, 8), // Half-size collision box (8x8 pixels centered)
             }),
             {
               wanderTimer: 0,
@@ -640,7 +640,7 @@ k.scene("main", async () => {
             k.z(100),
             k.body(), // Add physics body so chicken collides with walls/static boundaries
             k.area({
-              shape: new k.Rect(k.vec2(-6, -6), 12, 12), // Bigger collision box (12x12 pixels centered)
+              shape: new k.Rect(k.vec2(0, 0), 8, 8), // Half-size collision box (8x8 pixels centered)
             }),
             {
               wanderTimer: 0,
@@ -1063,8 +1063,7 @@ k.scene("secretRoom", async () => {
               // Create dialogue with play button
               const tvDialogue = `
                 <div style="text-align: center; padding: 20px;">
-                  <p style="margin-bottom: 15px; font-size: 18px;">📺 Secret TV discovered!</p>
-                  <p style="margin-bottom: 20px;">This ancient TV contains mysterious footage...</p>
+                  <p style="margin-bottom: 20px;">This ancient "CR"TV contains mysterious footage...</p>
                   <button onclick="window.displayVideo('/teletubbies.mp4'); document.getElementById('dialogue-ui').style.display = 'none';" style="background: #00ff00; color: black; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px;">▶️ Play Video</button>
                 </div>
               `;
@@ -1212,7 +1211,6 @@ k.scene("secretRoom", async () => {
         // Create dialogue with play button
         const tvDialogue = `
           <div style="text-align: center; padding: 20px;">
-            <p style="margin-bottom: 15px; font-size: 18px;">📺 Secret TV discovered!</p>
             <p style="margin-bottom: 20px;">This ancient TV contains mysterious footage...</p>
             <button onclick="window.displayVideo('/teletubbies.mp4'); document.getElementById('dialogue-ui').style.display = 'none';"
                     style="background: #00ff00; color: black; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px;">
