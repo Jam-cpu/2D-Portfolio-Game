@@ -404,6 +404,59 @@ k.scene("main", async () => {
     // Future: Display achievement popup, play special sound, etc.
   });
 
+  // Movement event system for cleaner WASD handling
+  player.on("startMoving", (direction) => {
+    isMovingWithWASD = true;
+    currentMoveDirection = direction;
+
+    if (direction === "up" && player.curAnim() !== "walk-up") {
+      player.play("walk-up");
+    } else if (direction === "down" && player.curAnim() !== "walk-down") {
+      player.play("walk-down");
+    } else if ((direction === "left" || direction === "right") && player.curAnim() !== "walk-side") {
+      player.play("walk-side");
+    }
+
+    if (direction === "left") {
+      player.flipX = true;
+    } else if (direction === "right") {
+      player.flipX = false;
+    }
+  });
+
+  player.on("stopMoving", () => {
+    isMovingWithWASD = false;
+    currentMoveDirection = "";
+
+    if (player.direction === "down") {
+      player.play("idle-down");
+    } else if (player.direction === "up") {
+      player.play("idle-up");
+    } else {
+      player.play("idle-side");
+    }
+  });
+
+  player.on("blocked", (direction) => {
+    isMovingWithWASD = false;
+    currentMoveDirection = "";
+
+    if (direction === "up") {
+      player.play("idle-up");
+    } else if (direction === "down") {
+      player.play("idle-down");
+    } else {
+      player.play("idle-side");
+    }
+
+    // Still update flip direction even when blocked
+    if (direction === "left") {
+      player.flipX = true;
+    } else if (direction === "right") {
+      player.flipX = false;
+    }
+  });
+
   for (const layer of layers)
   {
     if (layer.name === "Boundary")
@@ -705,39 +758,31 @@ k.scene("main", async () => {
               chicken.play("walk");
 
               // Set random wander timer based on chicken type
-              if (chicken.isSecondChicken)
-              {
+              if (chicken.isSecondChicken) {
                 chicken.wanderTimer = k.rand(0.5, 3);
-              }
-              else
-              {
+              } else {
                 chicken.wanderTimer = k.rand(1, 2.5);
               }
 
+              chicken.trigger("calculateDirection");
+            });
+
+            chicken.on("calculateDirection", () => {
               // Calculate wander direction
               const distanceFromOriginal = chicken.pos.dist(chicken.originalPos);
-              if (distanceFromOriginal > chicken.maxWanderDistance * 0.7)
-              {
+              if (distanceFromOriginal > chicken.maxWanderDistance * 0.7) {
                 const towardsCenter = chicken.originalPos.sub(chicken.pos).unit();
                 const randomDirection = k.vec2(k.rand(-1, 1), k.rand(-1, 1)).unit();
 
-                if (chicken.isSecondChicken)
-                {
+                if (chicken.isSecondChicken) {
                   chicken.wanderDirection = towardsCenter.scale(0.5).add(randomDirection.scale(0.5)).unit();
-                }
-                else
-                {
+                } else {
                   chicken.wanderDirection = towardsCenter.scale(0.7).add(randomDirection.scale(0.3)).unit();
                 }
-              }
-              else
-              {
-                if (chicken.isSecondChicken)
-                {
+              } else {
+                if (chicken.isSecondChicken) {
                   chicken.wanderDirection = k.vec2(k.rand(-1.5, 1.5), k.rand(-1.5, 1.5)).unit();
-                }
-                else
-                {
+                } else {
                   chicken.wanderDirection = k.vec2(k.rand(-1, 1), k.rand(-1, 1)).unit();
                 }
               }
@@ -748,12 +793,9 @@ k.scene("main", async () => {
               chicken.wanderDirection = k.vec2(0, 0);
 
               // Set pause timer based on chicken type
-              if (chicken.isSecondChicken)
-              {
+              if (chicken.isSecondChicken) {
                 chicken.pauseTimer = k.rand(1, 6);
-              }
-              else
-              {
+              } else {
                 chicken.pauseTimer = k.rand(2, 5);
               }
 
@@ -762,40 +804,35 @@ k.scene("main", async () => {
               chicken.play(anims[Math.floor(k.rand(0, anims.length))]);
             });
 
-            // Simplified onUpdate - just timer management and movement
-            chicken.onUpdate(() => {
-              if (chicken.isMoving)
-              {
+            chicken.on("updateMovement", () => {
+              if (chicken.isMoving) {
                 chicken.wanderTimer -= k.dt();
-                if (chicken.wanderTimer <= 0)
-                {
+                if (chicken.wanderTimer <= 0) {
                   chicken.trigger("stopWandering");
-                }
-                else
-                {
+                } else {
                   // Check if too far from original position
                   const distanceFromOriginal = chicken.pos.dist(chicken.originalPos);
-                  if (distanceFromOriginal > chicken.maxWanderDistance)
-                  {
+                  if (distanceFromOriginal > chicken.maxWanderDistance) {
                     chicken.wanderDirection = chicken.originalPos.sub(chicken.pos).unit();
                   }
                   chicken.move(chicken.wanderDirection.scale(chicken.speed));
                 }
-              }
-              else
-              {
+              } else {
                 chicken.pauseTimer -= k.dt();
-                if (chicken.pauseTimer <= 0)
-                {
+                if (chicken.pauseTimer <= 0) {
                   chicken.trigger("startWandering");
                 }
               }
             });
 
+            // Use event system for update loop
+            chicken.onUpdate(() => {
+              chicken.trigger("updateMovement");
+            });
+
             // Player interaction with chicken - using events
             chicken.on("interactWithPlayer", () => {
-              if (!player.isInDialogue)
-              {
+              if (!player.isInDialogue) {
                 player.isInDialogue = true;
                 stopPlayerMovement();
                 displayDialogue(
@@ -837,29 +874,21 @@ k.scene("main", async () => {
     let moveVector = k.vec2(0, 0);
     let direction = "";
 
-    if (key === "w" || key === "up")
-    {
+    if (key === "w" || key === "up") {
       moveVector.y = -speed;
       direction = "up";
-    }
-    else if (key === "s" || key === "down")
-    {
+    } else if (key === "s" || key === "down") {
       moveVector.y = speed;
       direction = "down";
-    }
-    else if (key === "a" || key === "left")
-    {
+    } else if (key === "a" || key === "left") {
       moveVector.x = -speed;
       direction = "left";
-    }
-    else if (key === "d" || key === "right")
-    {
+    } else if (key === "d" || key === "right") {
       moveVector.x = speed;
       direction = "right";
     }
 
-    if (direction)
-    {
+    if (direction) {
       // Store the current position before attempting to move
       const oldPos = k.vec2(player.pos.x, player.pos.y);
 
@@ -872,62 +901,11 @@ k.scene("main", async () => {
       // Update movement state and direction
       player.direction = direction;
 
-      // Only play walking animation if we actually moved
-      if (didMove)
-      {
-        isMovingWithWASD = true;
-        currentMoveDirection = direction;
-
-        if (direction === "up" && player.curAnim() !== "walk-up")
-        {
-          player.play("walk-up");
-        }
-        else if (direction === "down" && player.curAnim() !== "walk-down")
-        {
-          player.play("walk-down");
-        }
-        else if ((direction === "left" || direction === "right") && player.curAnim() !== "walk-side")
-        {
-          player.play("walk-side");
-        }
-
-        if (direction === "left")
-        {
-          player.flipX = true;
-        }
-        else if (direction === "right")
-        {
-          player.flipX = false;
-        }
-      }
-      else
-      {
-        // If we didn't move (blocked by collision), play idle animation
-        isMovingWithWASD = false;
-        currentMoveDirection = "";
-
-        if (direction === "up")
-        {
-          player.play("idle-up");
-        }
-        else if (direction === "down")
-        {
-          player.play("idle-down");
-        }
-        else
-        {
-          player.play("idle-side");
-        }
-
-        // Still update flip direction even when blocked
-        if (direction === "left")
-        {
-          player.flipX = true;
-        }
-        else if (direction === "right")
-        {
-          player.flipX = false;
-        }
+      // Use event system for movement logic
+      if (didMove) {
+        player.trigger("startMoving", direction);
+      } else {
+        player.trigger("blocked", direction);
       }
     }
   });
@@ -940,34 +918,17 @@ k.scene("main", async () => {
     const movementKeys = ["w", "a", "s", "d", "up", "left", "down", "right"];
     const anyKeyPressed = movementKeys.some(k.isKeyDown);
 
-    if (!anyKeyPressed)
-    {
-      // Reset movement state
-      isMovingWithWASD = false;
-      currentMoveDirection = "";
-
-      // Stop movement and play idle animation
-      if (player.direction === "down")
-      {
-        player.play("idle-down");
-      }
-      else if (player.direction === "up")
-      {
-        player.play("idle-up");
-      }
-      else
-      {
-        player.play("idle-side");
-      }
+    if (!anyKeyPressed) {
+      // Use event system for stop movement
+      player.trigger("stopMoving");
     }
   });
 
   k.onMouseDown((mouseBtn) => {
     if (mouseBtn !== "left" || player.isInDialogue) return;
 
-    // Stop any WASD movement when clicking
-    isMovingWithWASD = false;
-    currentMoveDirection = "";
+    // Stop any WASD movement when clicking - use event system
+    player.trigger("stopMoving");
 
     const worldMousePos = k.toWorld(k.mousePos());
     player.moveTo(worldMousePos, player.speed);
@@ -977,36 +938,26 @@ k.scene("main", async () => {
     const lowerBound = 50;
     const upperBound = 125;
 
-    if (
-      mouseAngle > lowerBound &&
-      mouseAngle < upperBound &&
-      player.curAnim() !== "walk-up"
-    )
-    {
+    if (mouseAngle > lowerBound && mouseAngle < upperBound && player.curAnim() !== "walk-up") {
       player.play("walk-up");
       player.direction = "up";
       return;
     }
 
-    if (mouseAngle < -lowerBound &&
-        mouseAngle > -upperBound &&
-        player.curAnim() !== "walk-down")
-    {
+    if (mouseAngle < -lowerBound && mouseAngle > -upperBound && player.curAnim() !== "walk-down") {
       player.play("walk-down");
       player.direction = "down";
       return;
     }
 
-    if (Math.abs(mouseAngle) > upperBound)
-    {
+    if (Math.abs(mouseAngle) > upperBound) {
       player.flipX = false;
       if (player.curAnim() !== "walk-side") player.play("walk-side");
       player.direction = "right";
       return;
     }
 
-    if (Math.abs(mouseAngle) < lowerBound)
-    {
+    if (Math.abs(mouseAngle) < lowerBound) {
       player.flipX = true;
       if (player.curAnim() !== "walk-side") player.play("walk-side");
       player.direction = "left";
@@ -1015,18 +966,8 @@ k.scene("main", async () => {
   });
 
   k.onMouseRelease(() => {
-    if (player.direction === "down")
-    {
-      player.play("idle-down");
-      return;
-    }
-    if (player.direction === "up")
-    {
-      player.play("idle-up");
-      return;
-    }
-
-    player.play("idle-side");
+    // Use event system for mouse release
+    player.trigger("stopMoving");
   });
 
   // Debug mode - press D to toggle collision boundaries visibility
@@ -1450,11 +1391,94 @@ k.scene("secretRoom", async () => {
     });
   }
 
-  // Terminal System
+  // Terminal System with event-driven architecture
   let terminalActive = false;
   let terminalHistory = [];
   let currentInput = "";
   let historyIndex = -1;
+
+  // Terminal state management through events
+  const terminalEvents = k.make([
+    {
+      isActive: false,
+      history: [],
+      currentInput: "",
+      historyIndex: -1
+    }
+  ]);
+
+  terminalEvents.on("open", () => {
+    terminalActive = true;
+    player.isInDialogue = true;
+    stopPlayerMovement_SecretRoom();
+
+    // Show terminal UI
+    [terminalBg, terminalTitle, terminalOutput, terminalPrompt, terminalInput, terminalCursor].forEach(element => {
+      element.hidden = false;
+    });
+
+    // Add welcome message
+    terminalHistory = [
+      "Welcome to SECRET TERMINAL v1.0",
+      "Type 'help' for available commands",
+      ""
+    ];
+    terminalEvents.trigger("updateDisplay");
+    terminalEvents.trigger("startCursorBlink");
+  });
+
+  terminalEvents.on("close", () => {
+    terminalActive = false;
+    player.isInDialogue = false;
+    currentInput = "";
+
+    // Hide terminal UI
+    [terminalBg, terminalTitle, terminalOutput, terminalPrompt, terminalInput, terminalCursor].forEach(element => {
+      element.hidden = true;
+    });
+  });
+
+  terminalEvents.on("updateDisplay", () => {
+    const maxLines = 15;
+    const displayHistory = terminalHistory.slice(-maxLines);
+    terminalOutput.text = displayHistory.join("\n");
+    terminalInput.text = currentInput;
+
+    // Update cursor position
+    const inputWidth = terminalInput.width;
+    terminalCursor.pos.x = k.width() * 0.195 + inputWidth;
+  });
+
+  terminalEvents.on("executeCommand", (command) => {
+    const parts = command.trim().split(" ");
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    terminalHistory.push(`> ${command}`);
+
+    if (terminalCommands[cmd]) {
+      const result = terminalCommands[cmd](args);
+      if (result) {
+        terminalHistory.push(result);
+      }
+    } else {
+      terminalHistory.push(`Command not found: ${cmd}`);
+    }
+
+    terminalHistory.push("");
+    terminalEvents.trigger("updateDisplay");
+  });
+
+  terminalEvents.on("startCursorBlink", () => {
+    if (terminalActive) {
+      k.wait(0.5, () => {
+        if (terminalActive) {
+          terminalCursor.hidden = !terminalCursor.hidden;
+          terminalEvents.trigger("startCursorBlink");
+        }
+      });
+    }
+  });
 
   // Terminal UI Elements (initially hidden)
   const terminalBg = k.add([
@@ -1575,86 +1599,24 @@ k.scene("secretRoom", async () => {
     }
   };
 
-  function openTerminal()
-  {
-    terminalActive = true;
-    player.isInDialogue = true;
-    stopPlayerMovement_SecretRoom();
-
-    // Show terminal UI
-    [terminalBg, terminalTitle, terminalOutput, terminalPrompt, terminalInput, terminalCursor].forEach(element => {
-      element.hidden = false;
-    });
-
-    // Add welcome message
-    terminalHistory = [
-      "Welcome to SECRET TERMINAL v1.0",
-      "Type 'help' for available commands",
-      ""
-    ];
-    updateTerminalDisplay();
-
-    // Start cursor blinking
-    startCursorBlink();
+  function openTerminal() {
+    terminalEvents.trigger("open");
   }
 
-  function closeTerminal()
-  {
-    terminalActive = false;
-    player.isInDialogue = false;
-    currentInput = "";
-
-    // Hide terminal UI
-    [terminalBg, terminalTitle, terminalOutput, terminalPrompt, terminalInput, terminalCursor].forEach(element => {
-      element.hidden = true;
-    });
+  function closeTerminal() {
+    terminalEvents.trigger("close");
   }
 
-  function updateTerminalDisplay()
-  {
-    const maxLines = 15; // Increased from 12 to use more space
-    const displayHistory = terminalHistory.slice(-maxLines);
-    terminalOutput.text = displayHistory.join("\n");
-    terminalInput.text = currentInput;
-
-    // Update cursor position
-    const inputWidth = terminalInput.width;
-    terminalCursor.pos.x = k.width() * 0.195 + inputWidth;
+  function updateTerminalDisplay() {
+    terminalEvents.trigger("updateDisplay");
   }
 
-  function executeCommand(command)
-  {
-    const parts = command.trim().split(" ");
-    const cmd = parts[0].toLowerCase();
-    const args = parts.slice(1);
-
-    terminalHistory.push(`> ${command}`);
-
-    if (terminalCommands[cmd])
-    {
-      const result = terminalCommands[cmd](args);
-      if (result)
-      {
-        terminalHistory.push(result);
-      }
-    }
-    else if (command.trim())
-    {
-      terminalHistory.push(`Command not found: ${cmd}`);
-      terminalHistory.push("Type 'help' for available commands");
-    }
-
-    terminalHistory.push("");
-    updateTerminalDisplay();
+  function executeCommand(command) {
+    terminalEvents.trigger("executeCommand", command);
   }
 
-  function startCursorBlink()
-  {
-    if (terminalActive)
-    {
-      terminalCursor.opacity = terminalCursor.opacity > 0 ? 0 : 1;
-      k.wait(0.5, startCursorBlink);
-    }
+  function startCursorBlink() {
+    terminalEvents.trigger("startCursorBlink");
   }
 
   setCamScale(k);
