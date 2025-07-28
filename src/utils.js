@@ -31,9 +31,19 @@ export function displayDialogue(text, onDisplayEnd)
     dialogue.innerHTML = "";
     clearInterval(intervalRef);
     closeBtn.removeEventListener("click", onCloseBtnClick);
+    document.removeEventListener("keydown", onKeyPress);
+  }
+
+  function onKeyPress(event)
+  {
+    if (event.key === "Enter")
+    {
+      onCloseBtnClick();
+    }
   }
 
   closeBtn.addEventListener("click", onCloseBtnClick);
+  document.addEventListener("keydown", onKeyPress);
 }
 
 export function displayPDF(pdfPath, onDisplayEnd)

@@ -244,17 +244,44 @@ window.displayVideo = function(videoPath)
 };
 
 k.scene("main", async () => {
+  // WASD movement controls for desktop - declare early so dialogue callbacks can access them
+  let isMovingWithWASD = false;
+  let currentMoveDirection = "";
+
+  // Function to stop all player movement
+  function stopPlayerMovement() {
+    // Stop WASD movement
+    isMovingWithWASD = false;
+    currentMoveDirection = "";
+
+    // Stop click movement
+    if (window.currentPlayer) {
+      window.currentPlayer.stop();
+    }
+
+    // Play appropriate idle animation
+    if (window.currentPlayer) {
+      if (window.currentPlayer.direction === "down") {
+        window.currentPlayer.play("idle-down");
+      } else if (window.currentPlayer.direction === "up") {
+        window.currentPlayer.play("idle-up");
+      } else {
+        window.currentPlayer.play("idle-side");
+      }
+    }
+  }
+
   // Start background music with fade in (only if not already playing)
   if (!window.currentBackgroundMusic || window.currentBackgroundMusic.paused) {
-    const music = k.play("background-music", { volume: 0, loop: true });
+    // const music = k.play("background-music", { volume: 0, loop: true }); // Commented out for testing
 
     // Store background music globally for rickroll function access
-    window.currentBackgroundMusic = music;
+    // window.currentBackgroundMusic = music; // Commented out for testing
 
     // Fade in the music over 3 seconds
-    k.tween(0, 0.5, 3, (val) => {
-      music.volume = val;
-    });
+    // k.tween(0, 0.5, 3, (val) => {
+    //   music.volume = val;
+    // }); // Commented out for testing
   }
 
   // Function to fade out music
@@ -421,10 +448,16 @@ k.scene("main", async () => {
             // Setup pot custom events
             potSprite.on("showDialogue", () => {
               player.isInDialogue = true;
+              stopPlayerMovement();
               displayDialogue(
                 dialogueData["pot 2"] || "Clank!",
                 () => {
                   player.isInDialogue = false;
+                  // Reset movement flags when dialogue closes
+                  isMovingWithWASD = false;
+                  currentMoveDirection = "";
+                  // Ensure player is stopped
+                  player.stop();
                   potSprite.trigger("break");
                 }
               );
@@ -470,6 +503,7 @@ k.scene("main", async () => {
               }
 
               player.isInDialogue = true;
+              stopPlayerMovement();
 
               // Play special sound effect for master sword
               if (boundary.name === "master sword")
@@ -479,7 +513,14 @@ k.scene("main", async () => {
 
               displayDialogue(
                 dialogueData[boundary.name] || `This is ${boundary.name}. No dialogue set yet.`,
-                () => {player.isInDialogue = false;}
+                () => {
+                  player.isInDialogue = false;
+                  // Reset movement flags when dialogue closes
+                  isMovingWithWASD = false;
+                  currentMoveDirection = "";
+                  // Ensure player is stopped
+                  player.stop();
+                }
               );
             });
           }
@@ -756,9 +797,17 @@ k.scene("main", async () => {
               if (!player.isInDialogue)
               {
                 player.isInDialogue = true;
+                stopPlayerMovement();
                 displayDialogue(
                   dialogueData.chicken || "Bawk bawk! 🐔",
-                  () => {player.isInDialogue = false;}
+                  () => {
+                    player.isInDialogue = false;
+                    // Reset movement flags when dialogue closes
+                    isMovingWithWASD = false;
+                    currentMoveDirection = "";
+                    // Ensure player is stopped
+                    player.stop();
+                  }
                 );
               }
             });
@@ -781,8 +830,144 @@ k.scene("main", async () => {
 
   k.onUpdate(() => {k.camPos(player.worldPos().x, player.worldPos().y + 100);});
 
+  k.onKeyDown((key) => {
+    if (player.isInDialogue) return; // Don't move during dialogue
+
+    const speed = player.speed;
+    let moveVector = k.vec2(0, 0);
+    let direction = "";
+
+    if (key === "w" || key === "up")
+    {
+      moveVector.y = -speed;
+      direction = "up";
+    }
+    else if (key === "s" || key === "down")
+    {
+      moveVector.y = speed;
+      direction = "down";
+    }
+    else if (key === "a" || key === "left")
+    {
+      moveVector.x = -speed;
+      direction = "left";
+    }
+    else if (key === "d" || key === "right")
+    {
+      moveVector.x = speed;
+      direction = "right";
+    }
+
+    if (direction)
+    {
+      // Store the current position before attempting to move
+      const oldPos = k.vec2(player.pos.x, player.pos.y);
+
+      // Try to move
+      player.move(moveVector);
+
+      // Check if we actually moved (not blocked by collision)
+      const didMove = !player.pos.eq(oldPos);
+
+      // Update movement state and direction
+      player.direction = direction;
+
+      // Only play walking animation if we actually moved
+      if (didMove)
+      {
+        isMovingWithWASD = true;
+        currentMoveDirection = direction;
+
+        if (direction === "up" && player.curAnim() !== "walk-up")
+        {
+          player.play("walk-up");
+        }
+        else if (direction === "down" && player.curAnim() !== "walk-down")
+        {
+          player.play("walk-down");
+        }
+        else if ((direction === "left" || direction === "right") && player.curAnim() !== "walk-side")
+        {
+          player.play("walk-side");
+        }
+
+        if (direction === "left")
+        {
+          player.flipX = true;
+        }
+        else if (direction === "right")
+        {
+          player.flipX = false;
+        }
+      }
+      else
+      {
+        // If we didn't move (blocked by collision), play idle animation
+        isMovingWithWASD = false;
+        currentMoveDirection = "";
+
+        if (direction === "up")
+        {
+          player.play("idle-up");
+        }
+        else if (direction === "down")
+        {
+          player.play("idle-down");
+        }
+        else
+        {
+          player.play("idle-side");
+        }
+
+        // Still update flip direction even when blocked
+        if (direction === "left")
+        {
+          player.flipX = true;
+        }
+        else if (direction === "right")
+        {
+          player.flipX = false;
+        }
+      }
+    }
+  });
+
+  // Handle key release for WASD movement
+  k.onKeyRelease((key) => {
+    if (player.isInDialogue) return;
+
+    // Check if any movement keys are still being pressed
+    const movementKeys = ["w", "a", "s", "d", "up", "left", "down", "right"];
+    const anyKeyPressed = movementKeys.some(k.isKeyDown);
+
+    if (!anyKeyPressed)
+    {
+      // Reset movement state
+      isMovingWithWASD = false;
+      currentMoveDirection = "";
+
+      // Stop movement and play idle animation
+      if (player.direction === "down")
+      {
+        player.play("idle-down");
+      }
+      else if (player.direction === "up")
+      {
+        player.play("idle-up");
+      }
+      else
+      {
+        player.play("idle-side");
+      }
+    }
+  });
+
   k.onMouseDown((mouseBtn) => {
     if (mouseBtn !== "left" || player.isInDialogue) return;
+
+    // Stop any WASD movement when clicking
+    isMovingWithWASD = false;
+    currentMoveDirection = "";
 
     const worldMousePos = k.toWorld(k.mousePos());
     player.moveTo(worldMousePos, player.speed);
@@ -859,6 +1044,33 @@ k.scene("main", async () => {
 
 // Secret Room Scene
 k.scene("secretRoom", async () => {
+  // WASD movement controls for desktop (Secret Room) - declare early so dialogue callbacks can access them
+  let isMovingWithWASD_SecretRoom = false;
+  let currentMoveDirection_SecretRoom = "";
+
+  // Function to stop all player movement (Secret Room)
+  function stopPlayerMovement_SecretRoom() {
+    // Stop WASD movement
+    isMovingWithWASD_SecretRoom = false;
+    currentMoveDirection_SecretRoom = "";
+
+    // Stop click movement
+    if (window.currentPlayer) {
+      window.currentPlayer.stop();
+    }
+
+    // Play appropriate idle animation
+    if (window.currentPlayer) {
+      if (window.currentPlayer.direction === "down") {
+        window.currentPlayer.play("idle-down");
+      } else if (window.currentPlayer.direction === "up") {
+        window.currentPlayer.play("idle-up");
+      } else {
+        window.currentPlayer.play("idle-side");
+      }
+    }
+  }
+
   // Stop background music in secret room
   if (window.currentBackgroundMusic) {
     window.currentBackgroundMusic.stop();
@@ -1059,6 +1271,7 @@ k.scene("secretRoom", async () => {
             if (!player.isInDialogue)
             {
               player.isInDialogue = true;
+              stopPlayerMovement_SecretRoom();
 
               // Create dialogue with play button
               const tvDialogue = `
@@ -1070,6 +1283,11 @@ k.scene("secretRoom", async () => {
 
               displayDialogue(tvDialogue, () => {
                 player.isInDialogue = false;
+                // Reset movement flags when dialogue closes
+                isMovingWithWASD_SecretRoom = false;
+                currentMoveDirection_SecretRoom = "";
+                // Ensure player is stopped
+                player.stop();
               });
             }
           });
@@ -1207,6 +1425,7 @@ k.scene("secretRoom", async () => {
       if (!player.isInDialogue)
       {
         player.isInDialogue = true;
+        stopPlayerMovement_SecretRoom();
 
         // Create dialogue with play button
         const tvDialogue = `
@@ -1221,6 +1440,11 @@ k.scene("secretRoom", async () => {
 
         displayDialogue(tvDialogue, () => {
           player.isInDialogue = false;
+          // Reset movement flags when dialogue closes
+          isMovingWithWASD_SecretRoom = false;
+          currentMoveDirection_SecretRoom = "";
+          // Ensure player is stopped
+          player.stop();
         });
       }
     });
@@ -1355,6 +1579,7 @@ k.scene("secretRoom", async () => {
   {
     terminalActive = true;
     player.isInDialogue = true;
+    stopPlayerMovement_SecretRoom();
 
     // Show terminal UI
     [terminalBg, terminalTitle, terminalOutput, terminalPrompt, terminalInput, terminalCursor].forEach(element => {
@@ -1448,6 +1673,138 @@ k.scene("secretRoom", async () => {
     }
   });
 
+  k.onKeyDown((key) => {
+    if (player.isInDialogue || terminalActive) return; // Don't move during dialogue or terminal
+
+    const speed = player.speed;
+    let moveVector = k.vec2(0, 0);
+    let direction = "";
+
+    if (key === "w" || key === "up")
+    {
+      moveVector.y = -speed;
+      direction = "up";
+    }
+    else if (key === "s" || key === "down")
+    {
+      moveVector.y = speed;
+      direction = "down";
+    }
+    else if (key === "a" || key === "left")
+    {
+      moveVector.x = -speed;
+      direction = "left";
+    }
+    else if (key === "d" || key === "right")
+    {
+      moveVector.x = speed;
+      direction = "right";
+    }
+
+    if (direction)
+    {
+      // Store the current position before attempting to move
+      const oldPos = k.vec2(player.pos.x, player.pos.y);
+
+      // Try to move
+      player.move(moveVector);
+
+      // Check if we actually moved (not blocked by collision)
+      const didMove = !player.pos.eq(oldPos);
+
+      // Update movement state and direction
+      player.direction = direction;
+
+      // Only play walking animation if we actually moved
+      if (didMove)
+      {
+        isMovingWithWASD_SecretRoom = true;
+        currentMoveDirection_SecretRoom = direction;
+
+        if (direction === "up" && player.curAnim() !== "walk-up")
+        {
+          player.play("walk-up");
+        }
+        else if (direction === "down" && player.curAnim() !== "walk-down")
+        {
+          player.play("walk-down");
+        }
+        else if ((direction === "left" || direction === "right") && player.curAnim() !== "walk-side")
+        {
+          player.play("walk-side");
+        }
+
+        if (direction === "left")
+        {
+          player.flipX = true;
+        }
+        else if (direction === "right")
+        {
+          player.flipX = false;
+        }
+      }
+      else
+      {
+        // If we didn't move (blocked by collision), play idle animation
+        isMovingWithWASD_SecretRoom = false;
+        currentMoveDirection_SecretRoom = "";
+
+        if (direction === "up")
+        {
+          player.play("idle-up");
+        }
+        else if (direction === "down")
+        {
+          player.play("idle-down");
+        }
+        else
+        {
+          player.play("idle-side");
+        }
+
+        // Still update flip direction even when blocked
+        if (direction === "left")
+        {
+          player.flipX = true;
+        }
+        else if (direction === "right")
+        {
+          player.flipX = false;
+        }
+      }
+    }
+  });
+
+  // Handle key release for WASD movement (Secret Room)
+  k.onKeyRelease((key) => {
+    if (player.isInDialogue || terminalActive) return;
+
+    // Check if any movement keys are still being pressed
+    const movementKeys = ["w", "a", "s", "d", "up", "left", "down", "right"];
+    const anyKeyPressed = movementKeys.some(k.isKeyDown);
+
+    if (!anyKeyPressed)
+    {
+      // Reset movement state
+      isMovingWithWASD_SecretRoom = false;
+      currentMoveDirection_SecretRoom = "";
+
+      // Stop movement and play idle animation
+      if (player.direction === "down")
+      {
+        player.play("idle-down");
+      }
+      else if (player.direction === "up")
+      {
+        player.play("idle-up");
+      }
+      else
+      {
+        player.play("idle-side");
+      }
+    }
+  });
+
   // Terminal keyboard input handling
   k.onCharInput((char) => {
     if (terminalActive)
@@ -1537,6 +1894,10 @@ k.scene("secretRoom", async () => {
   // Mouse controls (same as main scene)
   k.onMouseDown((mouseBtn) => {
     if (mouseBtn !== "left" || player.isInDialogue) return;
+
+    // Stop any WASD movement when clicking
+    isMovingWithWASD_SecretRoom = false;
+    currentMoveDirection_SecretRoom = "";
 
     const worldMousePos = k.toWorld(k.mousePos());
     player.moveTo(worldMousePos, player.speed);
