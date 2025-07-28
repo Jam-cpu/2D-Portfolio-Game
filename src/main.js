@@ -18,7 +18,7 @@ k.loadSprite("spritesheet", "/spritesheet.png", {
 
 // Load environment and UI sprites
 k.loadSprite("map", "/map.png");
-k.loadSprite("secretRoomMap", "/Secret room map.png");
+k.loadSprite("secretRoomMap", "/secretmap.png");
 k.loadSprite("lampost", "/lampost.png");
 k.loadSprite("rupee", "/rupee.png");
 k.loadSprite("rupeeicon", "/rupeeicon.png");
@@ -141,12 +141,109 @@ window.playRickroll = function()
   });
 };
 
-k.scene("main", async () => {
-  console.log("🏠 MAIN SCENE STARTING...");
+// Global function to display video overlay
+window.displayVideo = function(videoPath)
+{
+  // Disable player movement
+  if (window.currentPlayer)
+  {
+    window.currentPlayer.isInDialogue = true;
+  }
 
+  // Create video overlay container
+  const videoOverlay = document.createElement('div');
+  videoOverlay.id = 'video-overlay';
+  videoOverlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    cursor: pointer;
+  `;
+
+  // Create video element
+  const video = document.createElement('video');
+  video.src = videoPath;
+  video.style.cssText = `
+    max-width: 80%;
+    max-height: 80%;
+    background-color: black;
+    border: 2px solid #00ff00;
+  `;
+  video.controls = true;
+  video.autoplay = true;
+  video.volume = 0.7;
+
+  // Create close button
+  const closeButton = document.createElement('div');
+  closeButton.innerHTML = '✕';
+  closeButton.style.cssText = `
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: rgba(255, 0, 0, 0.7);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  `;
+
+  // Add elements to overlay
+  videoOverlay.appendChild(video);
+  videoOverlay.appendChild(closeButton);
+  document.body.appendChild(videoOverlay);
+
+  // Close video function
+  const closeVideo = () => {
+    document.body.removeChild(videoOverlay);
+    // Re-enable player movement
+    if (window.currentPlayer)
+    {
+      window.currentPlayer.isInDialogue = false;
+    }
+  };
+
+  // Close on overlay click (but not on video)
+  videoOverlay.addEventListener('click', (e) => {
+    if (e.target === videoOverlay)
+    {
+      closeVideo();
+    }
+  });
+
+  // Close on button click
+  closeButton.addEventListener('click', closeVideo);
+
+  // Close on Escape key
+  const handleKeyPress = (e) => {
+    if (e.key === 'Escape')
+    {
+      closeVideo();
+      document.removeEventListener('keydown', handleKeyPress);
+    }
+  };
+  document.addEventListener('keydown', handleKeyPress);
+
+  // Auto-close when video ends
+  video.addEventListener('ended', closeVideo);
+};
+
+k.scene("main", async () => {
   // Start background music with fade in (only if not already playing)
   if (!window.currentBackgroundMusic || window.currentBackgroundMusic.paused) {
-    console.log("Starting main scene background music");
     const music = k.play("background-music", { volume: 0, loop: true });
 
     // Store background music globally for rickroll function access
@@ -156,8 +253,6 @@ k.scene("main", async () => {
     k.tween(0, 0.5, 3, (val) => {
       music.volume = val;
     });
-  } else {
-    console.log("Background music already playing, continuing...");
   }
 
   // Function to fade out music
@@ -746,11 +841,8 @@ k.scene("main", async () => {
 
 // Secret Room Scene
 k.scene("secretRoom", async () => {
-  console.log("🎮 SECRET ROOM SCENE STARTING...");
-
   // Stop background music in secret room
   if (window.currentBackgroundMusic) {
-    console.log("Stopping background music for secret room");
     window.currentBackgroundMusic.stop();
     window.currentBackgroundMusic = null;
   }
@@ -776,17 +868,13 @@ k.scene("secretRoom", async () => {
   }
 
   // Load secret room map data
-  console.log("Secret Room: Starting to load map data...");
-
   let mapData;
   try {
-    const response = await fetch("/Secret room map.tmj");
-    console.log("Secret Room: Fetch response status:", response.status);
+    const response = await fetch("/secretmap.json");
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     mapData = await response.json();
-    console.log("Secret Room: Map data loaded successfully");
   } catch (error) {
     console.error("Secret Room: Error loading map:", error);
     // Use fallback empty map structure
@@ -794,12 +882,9 @@ k.scene("secretRoom", async () => {
   }
 
   const layers = mapData.layers;
-
-  console.log("Secret Room: Map loaded, layers:", layers.length);
-  console.log("Secret Room: Layer names:", layers.map(l => l.name));
-  console.log("Secret Room: All layer data:", layers);
-
   const map = k.add([k.sprite("secretRoomMap"), k.pos(0), k.scale(scaleFactor)]);
+
+
 
   // Create rupee icon overlay
   const rupeeIconOverlay = k.add([
@@ -868,7 +953,6 @@ k.scene("secretRoom", async () => {
   });
 
   player.on("returnToMain", () => {
-    console.log("Secret Room: Returning to main scene");
     k.play("tp-press-start", { volume: 0.7 });
     window.gameState.transitionToScene("main", { x: 200, y: 300 });
   });
@@ -876,16 +960,11 @@ k.scene("secretRoom", async () => {
   // Track if player was spawned
   let playerSpawned = false;
 
-  console.log("Secret Room: About to process layers for player spawn...");
-
   // Process map layers
   for (const layer of layers)
   {
-    console.log("Secret Room: Processing layer:", layer.name, "type:", layer.type);
-
     if (layer.name === "Boundary" || layer.name === "walls")
     {
-      console.log("Secret Room: Processing boundary layer with", layer.objects?.length || 0, "objects");
       for (const boundary of layer.objects || [])
       {
         // Add collision for boundary objects
@@ -899,22 +978,30 @@ k.scene("secretRoom", async () => {
         ]);
 
         // Store exit pipe reference for later collision setup
-        if (boundary.name === "exitpipe")
+        if (boundary.name === "exitpipe" || boundary.name === "pipe")
         {
           boundaryObj.tags = ["exitpipe"];
+        }
+
+        // Store secret PC reference for later collision setup
+        if (boundary.name === "secret pc")
+        {
+          boundaryObj.tags = ["secretpc"];
+        }
+
+        // Store secret TV reference for later collision setup
+        if (boundary.name === "secret tv")
+        {
+          boundaryObj.tags = ["secrettv"];
         }
       }
       continue;
     }
 
-    if (layer.name === "Spawn" || layer.name === "objects 1" || layer.name === "Object Layer 1")
+    if (layer.name === "Spawn" || layer.name === "objects 1" || layer.name === "objects")
     {
-      console.log("Secret Room: Processing spawn layer:", layer.name, "with", layer.objects?.length || 0, "objects");
-
       for (const entity of layer.objects || [])
       {
-        console.log("Secret Room: Found entity:", entity.name, "at", entity.x, entity.y);
-
         if (entity.name === "player" || entity.name === "spawn" || !entity.name)
         {
           // Always use spawn coordinates from the secret room map, not saved position
@@ -922,22 +1009,13 @@ k.scene("secretRoom", async () => {
           const spawnY = (map.pos.y + entity.y) * scaleFactor;
 
           player.pos = k.vec2(spawnX, spawnY);
-          console.log("Secret Room: Setting player position to:", spawnX, spawnY);
-          console.log("Secret Room: Calculated from - map.pos:", map.pos, "entity pos:", entity.x, entity.y, "scaleFactor:", scaleFactor);
-
           k.add(player);
           window.currentPlayer = player;
           playerSpawned = true;
 
-          console.log("Secret Room: Player added to scene");
-          console.log("Secret Room: Player final position:", player.pos);
-          console.log("Secret Room: Player world position:", player.worldPos());
-          console.log("Secret Room: Player exists in scene:", k.get("player").length > 0);
-
           // Immediately center camera on player
           const initialCamPos = k.vec2(player.worldPos().x, player.worldPos().y + 100);
           k.camPos(initialCamPos);
-          console.log("Secret Room: Camera immediately centered on player at:", initialCamPos);
 
           // Add rupee pickup collision handler
           player.onCollide("rupee", (rupee) => {
@@ -946,11 +1024,80 @@ k.scene("secretRoom", async () => {
 
           // Add exit pipe collision handler
           player.onCollide("exitpipe", () => {
-            console.log("Secret Room: Player hit exit pipe");
             player.trigger("returnToMain");
           });
 
-          break; // Exit loop once player is spawned
+          // Add secret PC collision handler
+          player.onCollide("secretpc", () => {
+            if (!terminalActive && !player.isInDialogue)
+            {
+              k.play("tp-press-start", { volume: 0.5 });
+              openTerminal();
+            }
+          });
+
+          // Add secret TV collision handler
+          player.onCollide("secrettv", () => {
+            if (!player.isInDialogue)
+            {
+              player.isInDialogue = true;
+
+              // Create dialogue with play button
+              const tvDialogue = `
+                <div style="text-align: center; padding: 20px;">
+                  <p style="margin-bottom: 15px; font-size: 18px;">📺 Secret TV discovered!</p>
+                  <p style="margin-bottom: 20px;">This ancient TV contains mysterious footage...</p>
+                  <button onclick="window.displayVideo('/teletubbies.mp4'); document.getElementById('dialogue-ui').style.display = 'none';" style="background: #00ff00; color: black; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px;">▶️ Play Video</button>
+                </div>
+              `;
+
+              displayDialogue(tvDialogue, () => {
+                player.isInDialogue = false;
+              });
+            }
+          });
+
+          // Don't break here - we need to process other entities in this layer
+        }
+
+        if (entity.name === "secret pc")
+        {
+          // Create PC collision area for interaction
+          const pcObj = map.add([
+            k.area({
+              shape: new k.Rect(k.vec2(0), entity.width || 32, entity.height || 32),
+            }),
+            k.body({ isStatic: true }),
+            k.pos(entity.x, entity.y),
+            "secretpc"
+          ]);
+        }
+
+        if (entity.name === "secret tv")
+        {
+          // Create TV collision boundary that actually blocks player movement
+          const tvBoundary = map.add([
+            k.area({
+              shape: new k.Rect(k.vec2(0), entity.width || 40, entity.height || 32),
+            }),
+            k.body({ isStatic: true }),
+            k.pos(entity.x, entity.y), // Don't apply scaleFactor here since map already handles scaling
+            "secrettv",
+            "wall" // Add wall tag so it behaves like other collision boundaries
+          ]);
+        }
+
+        if (entity.name === "pipe")
+        {
+          // Create pipe collision boundary for exit functionality
+          const pipeBoundary = map.add([
+            k.area({
+              shape: new k.Rect(k.vec2(0), entity.width || 16, entity.height || 16),
+            }),
+            k.body({ isStatic: true }),
+            k.pos(entity.x, entity.y), // Don't apply scaleFactor here since map already handles scaling
+            "exitpipe" // Use exitpipe tag for collision detection
+          ]);
         }
       }
     }
@@ -1011,19 +1158,16 @@ k.scene("secretRoom", async () => {
   }
 
   // Fallback: If no spawn point was found, place player at center of map
-  if (!playerSpawned) {
-    console.log("Secret Room: No spawn point found, using fallback position");
+  if (!playerSpawned)
+  {
     player.pos = k.vec2(400, 300); // Fallback position
     k.add(player);
     window.currentPlayer = player;
     playerSpawned = true;
-    console.log("Secret Room: Player spawned at fallback position:", player.pos);
-    console.log("Secret Room: Player exists after fallback:", k.get("player").length > 0);
 
     // Immediately center camera on fallback player
     const fallbackCamPos = k.vec2(player.worldPos().x, player.worldPos().y + 100);
     k.camPos(fallbackCamPos);
-    console.log("Secret Room: Camera centered on fallback player at:", fallbackCamPos);
 
     // Add collision handlers for fallback spawn
     player.onCollide("rupee", (rupee) => {
@@ -1031,14 +1175,246 @@ k.scene("secretRoom", async () => {
     });
 
     player.onCollide("exitpipe", () => {
-      console.log("Secret Room: Player hit exit pipe");
       player.trigger("returnToMain");
+    });
+
+    player.onCollide("secretpc", () => {
+      if (!terminalActive && !player.isInDialogue)
+      {
+        k.play("tp-press-start", { volume: 0.5 });
+        openTerminal();
+      }
+    });
+
+    player.onCollide("secrettv", () => {
+      if (!player.isInDialogue)
+      {
+        player.isInDialogue = true;
+
+        // Create dialogue with play button
+        const tvDialogue = `
+          <div style="text-align: center; padding: 20px;">
+            <p style="margin-bottom: 15px; font-size: 18px;">📺 Secret TV discovered!</p>
+            <p style="margin-bottom: 20px;">This ancient TV contains mysterious footage...</p>
+            <button onclick="window.displayVideo('/teletubbies.mp4'); document.getElementById('dialogue-ui').style.display = 'none';"
+                    style="background: #00ff00; color: black; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px;">
+              ▶️ Play Video
+            </button>
+          </div>
+        `;
+
+        displayDialogue(tvDialogue, () => {
+          player.isInDialogue = false;
+        });
+      }
     });
   }
 
-  console.log("Secret Room: Final player spawn check - spawned:", playerSpawned);
-  console.log("Secret Room: Players in scene:", k.get("player").length);
-  console.log("Secret Room: All objects in scene:", k.get("*").length);
+  // Terminal System
+  let terminalActive = false;
+  let terminalHistory = [];
+  let currentInput = "";
+  let historyIndex = -1;
+
+  // Terminal UI Elements (initially hidden)
+  const terminalBg = k.add([
+    k.rect(k.width() * 0.7, k.height() * 0.6),
+    k.color(0, 0, 0),
+    k.opacity(0.9),
+    k.pos(k.width() * 0.15, k.height() * 0.2),
+    k.fixed(),
+    k.z(300)
+  ]);
+  terminalBg.hidden = true;
+
+  const terminalTitle = k.add([
+    k.text("SECRET TERMINAL v1.0", { size: 20, font: "monospace" }),
+    k.pos(k.width() * 0.17, k.height() * 0.22),
+    k.color(0, 255, 0),
+    k.fixed(),
+    k.z(301)
+  ]);
+  terminalTitle.hidden = true;
+
+  const terminalOutput = k.add([
+    k.text("", { size: 14, font: "monospace" }),
+    k.pos(k.width() * 0.17, k.height() * 0.27),
+    k.color(0, 255, 0),
+    k.fixed(),
+    k.z(301)
+  ]);
+  terminalOutput.hidden = true;
+
+  const terminalPrompt = k.add([
+    k.text("> ", { size: 14, font: "monospace" }),
+    k.pos(k.width() * 0.17, k.height() * 0.72),
+    k.color(0, 255, 0),
+    k.fixed(),
+    k.z(301)
+  ]);
+  terminalPrompt.hidden = true;
+
+  const terminalInput = k.add([
+    k.text("", { size: 14, font: "monospace" }),
+    k.pos(k.width() * 0.195, k.height() * 0.72),
+    k.color(255, 255, 255),
+    k.fixed(),
+    k.z(301)
+  ]);
+  terminalInput.hidden = true;
+
+  const terminalCursor = k.add([
+    k.text("_", { size: 14, font: "monospace" }),
+    k.pos(k.width() * 0.195, k.height() * 0.72),
+    k.color(255, 255, 255),
+    k.fixed(),
+    k.z(301)
+  ]);
+  terminalCursor.hidden = true;
+
+  // Terminal Commands
+  const terminalCommands = {
+    help: () => {
+      return "Available commands:\n" +
+             "help - Show this help message\n" +
+             "whoami - Show current user\n" +
+             "ls - List files\n" +
+             "cat [file] - Read a file\n" +
+             "hack - Try to hack the system\n" +
+             "rupees - Mysterious rupee command\n" +
+             "exit - Close terminal";
+    },
+    whoami: () => "user: anonymous_hacker",
+    ls: () => "secrets.txt\npasswords.db\nbackdoor.exe\nrupee_generator.py",
+    cat: (args) => {
+      const file = args[0];
+      switch(file)
+      {
+        case "secrets.txt":
+          return "The secret room holds many mysteries...\nSome say there are hidden rupees everywhere.";
+        case "passwords.db":
+          return "admin:password123\nguest:guest\nhacker:1337h4x0r";
+        case "backdoor.exe":
+          return "[BINARY FILE] Cannot display binary content";
+        case "rupee_generator.py":
+          return "# Secret Rupee Generator\ndef generate_rupees():\n    return '💰' * 10";
+        default:
+          return `cat: ${file}: No such file or directory`;
+      }
+    },
+    hack: () => {
+      // Give player some rupees as a reward
+      if (window.rupeeCounterManager)
+      {
+        for (let i = 0; i < 5; i++)
+        {
+          window.rupeeCounterManager.overlay.trigger("increment");
+        }
+      }
+      return "ACCESS GRANTED! Hack successful!\n💰 5 rupees transferred to your account!";
+    },
+    rupees: () => {
+      // Give player rupees
+      if (window.rupeeCounterManager)
+      {
+        for (let i = 0; i < 3; i++)
+        {
+          window.rupeeCounterManager.overlay.trigger("increment");
+        }
+      }
+      return "🎮 Rupee cheat activated!\n💰 3 rupees added!";
+    },
+    exit: () => {
+      closeTerminal();
+      return "";
+    },
+    clear: () => {
+      terminalHistory = [];
+      updateTerminalDisplay();
+      return "";
+    }
+  };
+
+  function openTerminal()
+  {
+    terminalActive = true;
+    player.isInDialogue = true;
+
+    // Show terminal UI
+    [terminalBg, terminalTitle, terminalOutput, terminalPrompt, terminalInput, terminalCursor].forEach(element => {
+      element.hidden = false;
+    });
+
+    // Add welcome message
+    terminalHistory = [
+      "Welcome to SECRET TERMINAL v1.0",
+      "Type 'help' for available commands",
+      ""
+    ];
+    updateTerminalDisplay();
+
+    // Start cursor blinking
+    startCursorBlink();
+  }
+
+  function closeTerminal()
+  {
+    terminalActive = false;
+    player.isInDialogue = false;
+    currentInput = "";
+
+    // Hide terminal UI
+    [terminalBg, terminalTitle, terminalOutput, terminalPrompt, terminalInput, terminalCursor].forEach(element => {
+      element.hidden = true;
+    });
+  }
+
+  function updateTerminalDisplay()
+  {
+    const maxLines = 15; // Increased from 12 to use more space
+    const displayHistory = terminalHistory.slice(-maxLines);
+    terminalOutput.text = displayHistory.join("\n");
+    terminalInput.text = currentInput;
+
+    // Update cursor position
+    const inputWidth = terminalInput.width;
+    terminalCursor.pos.x = k.width() * 0.195 + inputWidth;
+  }
+
+  function executeCommand(command)
+  {
+    const parts = command.trim().split(" ");
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    terminalHistory.push(`> ${command}`);
+
+    if (terminalCommands[cmd])
+    {
+      const result = terminalCommands[cmd](args);
+      if (result)
+      {
+        terminalHistory.push(result);
+      }
+    }
+    else if (command.trim())
+    {
+      terminalHistory.push(`Command not found: ${cmd}`);
+      terminalHistory.push("Type 'help' for available commands");
+    }
+
+    terminalHistory.push("");
+    updateTerminalDisplay();
+  }
+
+  function startCursorBlink()
+  {
+    if (terminalActive)
+    {
+      terminalCursor.opacity = terminalCursor.opacity > 0 ? 0 : 1;
+      k.wait(0.5, startCursorBlink);
+    }
+  }
 
   setCamScale(k);
 
@@ -1046,7 +1422,6 @@ k.scene("secretRoom", async () => {
   if (player && player.worldPos) {
     const initialCamPos = k.vec2(player.worldPos().x, player.worldPos().y + 100);
     k.camPos(initialCamPos);
-    console.log("Secret Room: Camera immediately positioned at:", initialCamPos);
   }
 
   k.onResize(() => {setCamScale(k);});
@@ -1057,19 +1432,97 @@ k.scene("secretRoom", async () => {
     }
   });
 
-  console.log("Secret Room: Camera setup complete");
-  console.log("Secret Room: Player final check - position:", player.pos);
-  console.log("Secret Room: Player final check - in scene:", k.get("player").length > 0);
+  // Terminal keyboard input handling
+  k.onCharInput((char) => {
+    if (terminalActive)
+    {
+      // Add printable characters to input
+      if (char >= ' ' && char <= '~')
+      {
+        currentInput += char;
+        updateTerminalDisplay();
+      }
+    }
+  });
+
+  k.onKeyPress("backspace", () => {
+    if (terminalActive && currentInput.length > 0)
+    {
+      currentInput = currentInput.slice(0, -1);
+      updateTerminalDisplay();
+    }
+  });
+
+  k.onKeyPress("enter", () => {
+    if (terminalActive)
+    {
+      executeCommand(currentInput);
+      historyIndex = -1;
+      currentInput = "";
+      updateTerminalDisplay();
+    }
+  });
+
+  k.onKeyPress("up", () => {
+    if (terminalActive && terminalHistory.length > 0)
+    {
+      // Navigate command history
+      if (historyIndex === -1)
+      {
+        historyIndex = terminalHistory.length - 1;
+      }
+      else if (historyIndex > 0)
+      {
+        historyIndex--;
+      }
+
+      // Find previous command (starts with "> ")
+      for (let i = historyIndex; i >= 0; i--)
+      {
+        if (terminalHistory[i].startsWith("> "))
+        {
+          currentInput = terminalHistory[i].substring(2);
+          historyIndex = i;
+          updateTerminalDisplay();
+          break;
+        }
+      }
+    }
+  });
+
+  k.onKeyPress("down", () => {
+    if (terminalActive && historyIndex !== -1)
+    {
+      // Navigate command history forward
+      for (let i = historyIndex + 1; i < terminalHistory.length; i++)
+      {
+        if (terminalHistory[i].startsWith("> "))
+        {
+          currentInput = terminalHistory[i].substring(2);
+          historyIndex = i;
+          updateTerminalDisplay();
+          return;
+        }
+      }
+      // If no more commands, clear input
+      currentInput = "";
+      historyIndex = -1;
+      updateTerminalDisplay();
+    }
+  });
+
+  k.onKeyPress("escape", () => {
+    if (terminalActive)
+    {
+      closeTerminal();
+    }
+  });
 
   // Mouse controls (same as main scene)
   k.onMouseDown((mouseBtn) => {
-    console.log("Secret Room: Mouse clicked:", mouseBtn, "Player in dialogue:", player.isInDialogue);
-
     if (mouseBtn !== "left" || player.isInDialogue) return;
 
     const worldMousePos = k.toWorld(k.mousePos());
-    console.log("Secret Room: Moving player to:", worldMousePos, "Current player pos:", player.pos);
-
     player.moveTo(worldMousePos, player.speed);
 
     const mouseAngle = player.pos.angle(worldMousePos);
@@ -1127,11 +1580,6 @@ k.scene("secretRoom", async () => {
   // Music controls
   k.onKeyPress("m", () => {fadeOutMusic();});
   k.onKeyPress("n", () => {fadeInMusic();});
-
-  // Return to main scene with R key (for testing)
-  k.onKeyPress("r", () => {
-    player.trigger("returnToMain");
-  });
 
   // Scene cleanup
   k.onSceneLeave(() => {fadeOutMusic();});
