@@ -26,6 +26,7 @@ k.loadSprite("rupeeiconresize", "/rupeeiconresize.png");
 k.loadSprite("pot", "/pot.png");
 k.loadSprite("planthalf", "/planthalf.png");
 k.loadSprite("marioPipe", "/tubo-mario-small.png");
+k.loadSprite("sign", "/sign.png");
 
 // Load chicken sprite sheet with various animations
 k.loadSprite("chicken", "/Chicken Sprite Sheet.png", {
@@ -46,6 +47,7 @@ k.loadSound("tp-press-start", "/TP_PressStart.wav");
 k.loadSound("tp-get-rupee", "/TP_Get_Rupee.wav");
 k.loadSound("rickroll", "/rickroll.mp3");
 k.loadSound("pot-shatter", "/OOT_Pot_Shatter.wav");
+k.loadSound("pipesound", "/pipesound.mp3");
 
 k.setBackground(k.Color.fromHex("#311047"));
 
@@ -460,7 +462,7 @@ k.scene("main", async () => {
               // Special handling for Mario pipe - scene transition
               if (boundary.name === "mariopipe") {
                 // Play pipe sound effect
-                k.play("tp-press-start", { volume: 0.7 });
+                k.play("pipesound", { volume: 0.7 });
 
                 // Transition to secret room
                 window.gameState.transitionToScene("secretRoom", { x: 400, y: 300 });
@@ -569,6 +571,22 @@ k.scene("main", async () => {
               entity.y * scaleFactor  // Use pin point y coordinate
             ),
             k.anchor("center"), // Anchor from center to ensure proper centering
+            k.scale(scaleFactor),
+            k.z(100), // Higher z-index than player (50) to render in front
+            "foreground"
+          ]);
+        }
+
+        if (entity.name === "signforeground")
+        {
+          // Create sign entity at the specified coordinates
+          k.add([
+            k.sprite("sign"),
+            k.pos(
+              entity.x * scaleFactor, // Use exact x coordinate
+              entity.y * scaleFactor  // Use exact y coordinate
+            ),
+            k.anchor("botright"), // Anchor from bottom-right for precise positioning
             k.scale(scaleFactor),
             k.z(100), // Higher z-index than player (50) to render in front
             "foreground"
@@ -953,7 +971,7 @@ k.scene("secretRoom", async () => {
   });
 
   player.on("returnToMain", () => {
-    k.play("tp-press-start", { volume: 0.7 });
+    k.play("pipesound", { volume: 0.7 });
     window.gameState.transitionToScene("main", { x: 200, y: 300 });
   });
 
