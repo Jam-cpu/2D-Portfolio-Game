@@ -246,12 +246,14 @@ window.displayVideo = function(videoPath)
 k.scene("main", async () => {
   // WASD movement controls for desktop - declare early so dialogue callbacks can access them
   let isMovingWithWASD = false;
+  let isMovingWithMouse = false;
   let currentMoveDirection = "";
 
   // Function to stop all player movement
   function stopPlayerMovement() {
     // Stop WASD movement
     isMovingWithWASD = false;
+    isMovingWithMouse = false;
     currentMoveDirection = "";
 
     // Stop click movement
@@ -329,7 +331,46 @@ k.scene("main", async () => {
     k.z(200),
   ]);
 
-  // Create rupee counter with custom events
+  // Create FPS display background box for testing
+  const fpsBackground = k.add([
+    k.rect(120, 35),
+    k.pos(k.width() - 130, 20), // Top right corner with padding
+    k.color(0, 0, 0), // Black background
+    k.opacity(0.8),
+    k.fixed(),
+    k.z(199), // Behind the text
+  ]);
+
+  // Create FPS display for testing
+  const fpsDisplay = k.add([
+    k.text("FPS: 0", {
+      size: 24,
+    }),
+    k.pos(k.width() - 125, 30), // Top right corner, centered in box
+    k.color(255, 255, 255), // White color
+    k.fixed(),
+    k.z(200),
+  ]);
+
+  // Manual FPS calculation
+  let frameCount = 0;
+  let lastTime = 0;
+  let fps = 0;
+
+  // Update FPS display every frame
+  fpsDisplay.onUpdate(() => {
+    frameCount++;
+    const currentTime = k.time();
+
+    // Update FPS every second
+    if (currentTime - lastTime >= 1.0) {
+      fps = Math.round(frameCount / (currentTime - lastTime));
+      frameCount = 0;
+      lastTime = currentTime;
+    }
+
+    fpsDisplay.text = `FPS: ${fps}`;
+  });  // Create rupee counter with custom events
   const rupeeCounterManager = {
     count: window.gameState.playerData.rupeeCount || 0,
     overlay: rupeeCounterOverlay,
@@ -407,7 +448,11 @@ k.scene("main", async () => {
   // Movement event system for cleaner WASD handling
   player.on("startMoving", (direction) => {
     isMovingWithWASD = true;
+    isMovingWithMouse = false; // Stop mouse movement when WASD starts
     currentMoveDirection = direction;
+
+    // Stop any existing mouse movement
+    player.stop();
 
     if (direction === "up" && player.curAnim() !== "walk-up") {
       player.play("walk-up");
@@ -426,6 +471,7 @@ k.scene("main", async () => {
 
   player.on("stopMoving", () => {
     isMovingWithWASD = false;
+    isMovingWithMouse = false;
     currentMoveDirection = "";
 
     if (player.direction === "down") {
@@ -439,6 +485,7 @@ k.scene("main", async () => {
 
   player.on("blocked", (direction) => {
     isMovingWithWASD = false;
+    isMovingWithMouse = false;
     currentMoveDirection = "";
 
     if (direction === "up") {
@@ -870,6 +917,9 @@ k.scene("main", async () => {
   k.onKeyDown((key) => {
     if (player.isInDialogue) return; // Don't move during dialogue
 
+    // Don't process WASD if mouse movement is active
+    if (isMovingWithMouse) return;
+
     const speed = player.speed;
     let moveVector = k.vec2(0, 0);
     let direction = "";
@@ -914,6 +964,9 @@ k.scene("main", async () => {
   k.onKeyRelease((key) => {
     if (player.isInDialogue) return;
 
+    // Don't process key release if mouse movement is active
+    if (isMovingWithMouse) return;
+
     // Check if any movement keys are still being pressed
     const movementKeys = ["w", "a", "s", "d", "up", "left", "down", "right"];
     const anyKeyPressed = movementKeys.some(k.isKeyDown);
@@ -929,6 +982,10 @@ k.scene("main", async () => {
 
     // Stop any WASD movement when clicking - use event system
     player.trigger("stopMoving");
+
+    // Set mouse movement flag
+    isMovingWithMouse = true;
+    isMovingWithWASD = false;
 
     const worldMousePos = k.toWorld(k.mousePos());
     player.moveTo(worldMousePos, player.speed);
@@ -966,12 +1023,13 @@ k.scene("main", async () => {
   });
 
   k.onMouseRelease(() => {
-    // Use event system for mouse release
+    // Clear mouse movement flag and use event system for mouse release
+    isMovingWithMouse = false;
     player.trigger("stopMoving");
   });
 
-  // Debug mode - press D to toggle collision boundaries visibility
-  k.onKeyPress("d", () => {k.debug.inspect = !k.debug.inspect;});
+  // Debug mode - press B to toggle collision boundaries visibility
+  k.onKeyPress("b", () => {k.debug.inspect = !k.debug.inspect;});
 
   // Press M to fade out music (for demonstration)
   k.onKeyPress("m", () => {fadeOutMusic();});
@@ -1077,7 +1135,46 @@ k.scene("secretRoom", async () => {
     k.z(200),
   ]);
 
-  // Create rupee counter manager for secret room
+  // Create FPS display background box for testing (Secret Room)
+  const fpsBackground = k.add([
+    k.rect(120, 35),
+    k.pos(k.width() - 130, 20), // Top right corner with padding
+    k.color(0, 0, 0), // Black background
+    k.opacity(0.8),
+    k.fixed(),
+    k.z(199), // Behind the text
+  ]);
+
+  // Create FPS display for testing (Secret Room)
+  const fpsDisplay = k.add([
+    k.text("FPS: 0", {
+      size: 24,
+    }),
+    k.pos(k.width() - 125, 30), // Top right corner, centered in box
+    k.color(255, 255, 255), // White color
+    k.fixed(),
+    k.z(200),
+  ]);
+
+  // Manual FPS calculation for secret room
+  let frameCount_SecretRoom = 0;
+  let lastTime_SecretRoom = 0;
+  let fps_SecretRoom = 0;
+
+  // Update FPS display every frame
+  fpsDisplay.onUpdate(() => {
+    frameCount_SecretRoom++;
+    const currentTime = k.time();
+
+    // Update FPS every second
+    if (currentTime - lastTime_SecretRoom >= 1.0) {
+      fps_SecretRoom = Math.round(frameCount_SecretRoom / (currentTime - lastTime_SecretRoom));
+      frameCount_SecretRoom = 0;
+      lastTime_SecretRoom = currentTime;
+    }
+
+    fpsDisplay.text = `FPS: ${fps_SecretRoom}`;
+  });  // Create rupee counter manager for secret room
   const rupeeCounterManager = {
     count: window.gameState.playerData.rupeeCount,
     overlay: rupeeCounterOverlay,
