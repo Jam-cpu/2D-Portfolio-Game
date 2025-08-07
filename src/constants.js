@@ -3,7 +3,7 @@ export const scaleFactor = 4;
 export const dialogueData = {
   computer: `This is my computer. This is where I love to code, play games and make music!
         I've made a couple of games with it. I also like Rust, Go and Python. Anyway regardless of the language, I just like programming.
-        Here is my <a href="https://github.com" target="_blank">Github</a>!`,
+        Here is my <a href="https://github.com/Jam-cpu" target="_blank">Github</a>!`,
   bookshelves: `There are a lot of programming books on my shelves. There is even one in French! I also have some manga.`,
   "tv and sofa": `Kick back and relax to watch some great film and tv.\n <a href="https://letterboxd.com/LoFiJam/" target="_blank">Letterboxd</a>`,
   "small sofa": `This is my reading corner. I like to relax here and read programming books or manga.`,
