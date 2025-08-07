@@ -220,6 +220,97 @@ export function displayVideo(videoPath) {
   video.addEventListener('ended', closeVideo);
 }
 
+// Global function to display image overlay
+export function displayImage(imagePath) {
+  // Disable player movement
+  if (window.currentPlayer) {
+    window.currentPlayer.isInDialogue = true;
+  }
+
+  // Create image overlay container
+  const imageOverlay = document.createElement('div');
+  imageOverlay.id = 'image-overlay';
+  imageOverlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    cursor: pointer;
+  `;
+
+  // Create image element
+  const img = document.createElement('img');
+  img.src = imagePath;
+  img.style.cssText = `
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+    border: 2px solid #00ff00;
+    background-color: black;
+    border-radius: 5px;
+  `;
+
+  // Create close button
+  const closeButton = document.createElement('div');
+  closeButton.innerHTML = '✕';
+  closeButton.style.cssText = `
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: rgba(255, 0, 0, 0.7);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  `;
+
+  // Add elements to overlay
+  imageOverlay.appendChild(img);
+  imageOverlay.appendChild(closeButton);
+  document.body.appendChild(imageOverlay);
+
+  // Close image function
+  const closeImage = () => {
+    document.body.removeChild(imageOverlay);
+    // Re-enable player movement
+    if (window.currentPlayer) {
+      window.currentPlayer.isInDialogue = false;
+    }
+  };
+
+  // Close on overlay click (but not on image)
+  imageOverlay.addEventListener('click', (e) => {
+    if (e.target === imageOverlay) {
+      closeImage();
+    }
+  });
+
+  // Close on button click
+  closeButton.addEventListener('click', closeImage);
+
+  // Close on Escape key
+  const handleKeyPress = (e) => {
+    if (e.key === 'Escape') {
+      closeImage();
+      document.removeEventListener('keydown', handleKeyPress);
+    }
+  };
+  document.addEventListener('keydown', handleKeyPress);
+}
+
 // Terminal System for Secret Room
 export function createTerminalSystem(player, rupeeCounterManager) {
   let terminalActive = false;
@@ -568,3 +659,4 @@ export function createTerminalSystem(player, rupeeCounterManager) {
 // Make globally accessible for backwards compatibility
 window.openPDF = openPDF;
 window.displayVideo = displayVideo;
+window.displayImage = displayImage;

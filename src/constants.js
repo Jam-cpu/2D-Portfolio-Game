@@ -20,7 +20,7 @@ export const dialogueData = {
   keyboard: ``,
   acoustic: ``,
   CV: `Ahh look, here's my CV! \n<button class="pdf-button" onclick="window.openPDF('/Curriculum Vitae.pdf')">View CV</button>`,
-  banff: ``,
+  banff: `Beautiful memories from Banff National Park! 🏔️ \n<button class="photo-button" onclick="window.displayImage('/banffjam.jpg')">📸 View Photo</button>`,
   lampost: `A classic street lamp casting a warm glow. \nIt reminds me of cozy evening walks and late-night coding sessions.`,
   "chef's knife": `My japanese chef's knife 精度.
         I got this when I worked as a line chef in university.`,

@@ -3,7 +3,7 @@ import { k } from "./kaboomCtx.js";
 import { gameState } from "./gameState.js";
 import { playRickroll } from "./audioManager.js";
 import { initializeMainScene } from "./sceneManager.js";
-import { openPDF, displayVideo, createTerminalSystem } from "./uiComponents.js";
+import { openPDF, displayVideo, displayImage, createTerminalSystem } from "./uiComponents.js";
 import { displayDialogue, setCamScale } from "./utils.js";
 import { scaleFactor } from "./constants.js";
 import { loadAllAssets } from "./assetManager.js";
@@ -18,6 +18,7 @@ k.setBackground(k.Color.fromHex("#311047"));
 window.gameState = gameState;
 window.openPDF = openPDF;
 window.displayVideo = displayVideo;
+window.displayImage = displayImage;
 window.playRickroll = playRickroll;
 
 k.scene("main", async () => {

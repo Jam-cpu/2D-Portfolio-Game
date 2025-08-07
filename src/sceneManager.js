@@ -7,7 +7,7 @@ import { createTerminalDialogue } from "./dialogueSystem.js";
 import { scaleFactor, dialogueData } from "./constants.js";
 import { displayDialogue } from "./utils.js";
 import { gameState } from "./gameState.js";
-import { openPDF, displayVideo } from "./uiComponents.js";
+import { openPDF, displayVideo, displayImage } from "./uiComponents.js";
 import { playRickroll } from "./audioManager.js";
 
 // Create map and boundaries
@@ -124,6 +124,7 @@ export async function createInteractiveObjects(player) {
     // Make functions globally accessible for dialogue buttons
     window.openPDF = openPDF;
     window.displayVideo = displayVideo;
+    window.displayImage = displayImage;
     window.playRickroll = playRickroll;
 
     // Process all layers for interactive objects
