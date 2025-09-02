@@ -3,6 +3,8 @@ import { k } from "./kaboomCtx.js";
 
 // Global audio state
 let isRickrollPlaying = false;
+let rickrollRefusalCount = 0;
+const rickrollRefusalMessages = ["No", "Nope", "Nah", "lmao"];
 
 // Music control functions
 export function fadeOutMusic() {
@@ -24,15 +26,15 @@ export function fadeInMusic() {
 // Start background music with fade in
 export function startBackgroundMusic() {
   if (!window.currentBackgroundMusic || window.currentBackgroundMusic.paused) {
-    // const music = k.play("background-music", { volume: 0, loop: true }); // Commented out for testing
+    const music = k.play("background-music", { volume: 0, loop: true });
 
     // Store background music globally for rickroll function access
-    // window.currentBackgroundMusic = music; // Commented out for testing
+    window.currentBackgroundMusic = music;
 
     // Fade in the music over 3 seconds
-    // k.tween(0, 0.5, 3, (val) => {
-    //   music.volume = val;
-    // }); // Commented out for testing
+    k.tween(0, 0.5, 3, (val) => {
+      music.volume = val;
+    });
   }
 }
 
@@ -46,12 +48,22 @@ export function stopBackgroundMusic() {
 
 // Global function to play rickroll sound from dialogue buttons
 export function playRickroll() {
-  // Don't play if already playing
+  // If already playing, show refusal message instead
   if (isRickrollPlaying) {
+    const message = rickrollRefusalMessages[rickrollRefusalCount % rickrollRefusalMessages.length];
+    rickrollRefusalCount++;
+
+    // Update the dialogue content by finding the dialogue UI and appending the message
+    const dialogueElement = document.getElementById('dialogue');
+    if (dialogueElement) {
+      // Add the refusal message on a new line
+      dialogueElement.innerHTML += '<br>' + message;
+    }
     return;
   }
 
   isRickrollPlaying = true;
+  rickrollRefusalCount = 0; // Reset refusal count when starting new song
 
   // Fade out background music
   if (window.currentBackgroundMusic) {

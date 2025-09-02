@@ -64,7 +64,7 @@ export function createRupeeCounter(initialCount = 0) {
     k.text(initialCount.toString(), {
       size: 45,
     }),
-    k.pos(73, 35),
+    k.pos(73, 40),
     k.color(0, 255, 153), // Green color
     k.fixed(),
     k.z(200),
@@ -104,7 +104,7 @@ export function createRupeeCounterManager(overlay, initialCount = 0) {
       });
 
       this.overlay.on("increment", (amount = 1) => {
-        this.increment(amount); // Use the increment method
+        this.increment(amount); 
       });
 
       // Initialize display

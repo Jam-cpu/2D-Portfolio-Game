@@ -1,12 +1,11 @@
 export const scaleFactor = 4;
 
 export const dialogueData = {
-  computer: `This is my computer. This is where I love to code, play games and make music!
-        I've made a couple of games with it. I also like Rust, Go and Python. Anyway regardless of the language, I just like programming.
+  computer: `This is my computer. This is where I love to code, play games and make music!3
         Here is my <a href="https://github.com/Jam-cpu" target="_blank">Github</a>!`,
-  bookshelves: `There are a lot of programming books on my shelves. There is even one in French! I also have some manga.`,
+  bookshelves: `There are a lot of programming books on my shelves.`,
   "tv and sofa": `Kick back and relax to watch some great film and tv.\n <a href="https://letterboxd.com/LoFiJam/" target="_blank">Letterboxd</a>`,
-  "small sofa": `This is my reading corner. I like to relax here and read programming books or manga.`,
+  "small sofa": `This is my reading corner. I like to relax here and read programming books.`,
   bench: `Top 5 benches for sure ...`,
   billboard: `Welcome to my interactive portfolio! \nCome check out my place! \n\nJam`,
   SNES: `My classic Super Nintendo! My first console! <a href="https://www.smbgames.be/super-mario-kart.php" target="_blank">Super Mario Kart</a> was my first game!`,
@@ -19,9 +18,8 @@ export const dialogueData = {
   "guitar and amp": ``,
   keyboard: ``,
   acoustic: ``,
-  CV: `Ahh look, here's my CV! \n<button class="pdf-button" onclick="window.openPDF('/Curriculum Vitae.pdf')">View CV</button>`,
+  CV: `Ahh look, here's my CV! \n<button class="pdf-button" onclick="window.openPDF('/2d Game CV.pdf')">View CV</button>`,
   banff: `Beautiful memories from Banff National Park! 🏔️ \n<button class="photo-button" onclick="window.displayImage('/banffjam.jpg')">📸 View Photo</button>`,
-  lampost: `A classic street lamp casting a warm glow. \nIt reminds me of cozy evening walks and late-night coding sessions.`,
   "chef's knife": `My japanese chef's knife 精度.
         I got this when I worked as a line chef in university.`,
   vinyl: `What do we have here ...

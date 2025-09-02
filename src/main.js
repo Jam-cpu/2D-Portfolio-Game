@@ -1,7 +1,7 @@
 // Import modular components
 import { k } from "./kaboomCtx.js";
 import { gameState } from "./gameState.js";
-import { playRickroll } from "./audioManager.js";
+import { playRickroll, startBackgroundMusic } from "./audioManager.js";
 import { initializeMainScene } from "./sceneManager.js";
 import { openPDF, displayVideo, displayImage, createTerminalSystem } from "./uiComponents.js";
 import { displayDialogue, setCamScale } from "./utils.js";
@@ -31,6 +31,9 @@ k.scene("main", async () => {
   });
 
   console.log("Main scene player position:", sceneComponents.player.pos);
+
+  // Start background music
+  startBackgroundMusic();
 
   // Import and setup input handling
   const { setupMainSceneInput } = await import("./input/mainSceneInput.js");

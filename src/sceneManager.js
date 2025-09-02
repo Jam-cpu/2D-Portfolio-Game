@@ -354,7 +354,7 @@ export async function createInteractiveObjects(player) {
           if (entity.name === "chicken") {
             // Create two chickens with AI behavior
             const chicken1 = createChickenWithAI(entity.x * scaleFactor, entity.y * scaleFactor, false);
-            const chicken2 = createChickenWithAI((entity.x * scaleFactor) + 7, entity.y * scaleFactor, true);
+            const chicken2 = createChickenWithAI((entity.x * scaleFactor) + 40, (entity.y * scaleFactor) + 20, true);
 
             // Set up chicken collision dialogue
             [chicken1, chicken2].forEach(chicken => {

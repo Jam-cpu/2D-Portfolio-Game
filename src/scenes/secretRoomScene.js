@@ -253,7 +253,7 @@ export function createSecretRoomScene() {
           const tvDialogue = `
             <div style="text-align: center; padding: 20px;">
               <p style="margin-bottom: 20px;">This ancient "CR"TV contains mysterious footage...</p>
-              <button onclick="window.displayVideo('/teletubbies.mp4'); document.getElementById('dialogue-ui').style.display = 'none';" style="background: #00ff00; color: black; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px;">▶️ Play Video</button>
+              <button onclick="window.displayVideo('/terry davis.mp4'); document.getElementById('dialogue-ui').style.display = 'none';" style="background: #00ff00; color: black; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px;">▶️ Play Video</button>
             </div>
           `;
 
