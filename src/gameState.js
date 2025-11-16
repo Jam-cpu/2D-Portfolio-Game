@@ -5,7 +5,8 @@ export const gameState = {
   currentScene: "main",
   playerData: {
     rupeeCount: 0,
-    position: { x: 0, y: 0 }
+    position: { x: 0, y: 0 },
+    collectedRupees: new Set() // Track collected rupee IDs
   },
 
   // Scene transition with fade effect

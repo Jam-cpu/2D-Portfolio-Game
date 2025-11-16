@@ -209,7 +209,9 @@ export async function createInteractiveObjects(player) {
                   const remainingPotObjects = k.get("pot 2");
                   console.log("Remaining objects with 'pot 2' tag:", remainingPotObjects.length);
 
-                  const rupeeFromPot = createRupee(potSprite.pos.x, potSprite.pos.y);
+                  // Create unique ID for pot rupee based on pot position
+                  const potRupeeId = `pot_rupee_${Math.round(potSprite.pos.x)}_${Math.round(potSprite.pos.y)}`;
+                  const rupeeFromPot = createRupee(potSprite.pos.x, potSprite.pos.y, potRupeeId);
                   console.log("Created rupee from pot at:", potSprite.pos.x, potSprite.pos.y);
                 }, 100); // Small delay to ensure boundaries are cleared
               });
@@ -497,7 +499,20 @@ export function setupUI(initialRupeeCount = 0) {
 }
 
 // Create rupee collectibles
-export function createRupee(x, y) {
+export function createRupee(x, y, id = null) {
+  // Generate a unique ID if not provided (based on position)
+  const rupeeId = id || `rupee_${Math.round(x)}_${Math.round(y)}`;
+
+  // Check if this rupee has already been collected
+  if (window.gameState && window.gameState.playerData.collectedRupees.has(rupeeId)) {
+    console.log(`Rupee ${rupeeId} already collected, not spawning`);
+    console.log("Collected rupees:", Array.from(window.gameState.playerData.collectedRupees));
+    return null; // Don't create the rupee
+  }
+
+  console.log(`Creating rupee with ID: ${rupeeId} at position (${x}, ${y})`);
+  console.log("Currently collected rupees:", Array.from(window.gameState?.playerData?.collectedRupees || []));
+
   const rupee = k.add([
     k.sprite("rupee"),
     k.pos(x, y),
@@ -506,9 +521,12 @@ export function createRupee(x, y) {
     k.scale(scaleFactor),
     k.z(100),
     "rupee",
+    {
+      rupeeId: rupeeId // Store the ID on the rupee object
+    }
   ]);
 
-  console.log("Created rupee at:", x, y, "with tags:", rupee.tags);
+  console.log("Created rupee at:", x, y, "with ID:", rupeeId);
 
   // Direct collision detection with player
   rupee.onUpdate(() => {
@@ -522,6 +540,15 @@ export function createRupee(x, y) {
   // Rupee collection event
   rupee.on("collected", (player) => {
     console.log("Rupee collected event triggered!");
+
+    // Mark this rupee as collected in game state
+    if (window.gameState && rupee.rupeeId) {
+      window.gameState.playerData.collectedRupees.add(rupee.rupeeId);
+      console.log(`Marked rupee ${rupee.rupeeId} as collected`);
+      console.log("Total collected rupees:", window.gameState.playerData.collectedRupees.size);
+      console.log("Collected IDs:", Array.from(window.gameState.playerData.collectedRupees));
+    }
+
     k.destroy(rupee);
 
     // Play collection sound
@@ -676,6 +703,7 @@ export async function initializeMainScene(playerPos = { x: 100, y: 200 }) {
 
   // Create rupees from map data (if not already created by interactive objects)
   const rupees = [];
+  let rupeeEntitiesFound = 0; // Track how many rupee entities exist in map
 
   // Look for rupees in Foreground layer
   if (mapData && mapData.layers) {
@@ -683,10 +711,15 @@ export async function initializeMainScene(playerPos = { x: 100, y: 200 }) {
       if (layer.name === "Foreground") {
         for (const entity of layer.objects || []) {
           if (entity.name === "rupee") {
+            rupeeEntitiesFound++; // Count rupee entities regardless of whether they spawn
             console.log("Creating rupee at:", entity.x, entity.y);
             // Use entity coordinates and scale them properly
-            const rupee = createRupee(entity.x * scaleFactor, entity.y * scaleFactor);
-            rupees.push(rupee);
+            // Create unique ID based on UNSCALED map position for consistency
+            const rupeeId = `map_rupee_${entity.x}_${entity.y}`;
+            const rupee = createRupee(entity.x * scaleFactor, entity.y * scaleFactor, rupeeId);
+            if (rupee) {
+              rupees.push(rupee);
+            }
           }
         }
       }
@@ -694,15 +727,17 @@ export async function initializeMainScene(playerPos = { x: 100, y: 200 }) {
   }
 
   // Fallback: Create some sample rupees if none found in map
-  if (rupees.length === 0) {
+  if (rupeeEntitiesFound === 0) {
     console.log("No rupees found in map, creating fallback rupees");
-    rupees.push(
-      createRupee(300, 400),
-      createRupee(500, 300),
-      createRupee(700, 500),
-      createRupee(200, 600),
-      createRupee(800, 200)
-    );
+    const fallbackRupees = [
+      createRupee(300, 400, "fallback_1"),
+      createRupee(500, 300, "fallback_2"),
+      createRupee(700, 500, "fallback_3"),
+      createRupee(200, 600, "fallback_4"),
+      createRupee(800, 200, "fallback_5")
+    ];
+    // Only push non-null rupees
+    rupees.push(...fallbackRupees.filter(r => r !== null));
   }
 
   return {
