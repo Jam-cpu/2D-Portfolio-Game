@@ -12,7 +12,7 @@ export const gameState = {
   transitionToScene(sceneName, playerPos = null) {
     // Store current player data
     if (window.currentPlayer) {
-      this.playerData.rupeeCount = window.rupeeCounterManager ? window.rupeeCounterManager.count : 0;
+      this.playerData.rupeeCount = window.currentRupeeManager ? window.currentRupeeManager.count : 0;
       this.playerData.position = {
         x: window.currentPlayer.pos.x,
         y: window.currentPlayer.pos.y

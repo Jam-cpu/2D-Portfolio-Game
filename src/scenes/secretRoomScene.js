@@ -63,6 +63,10 @@ export function createSecretRoomScene() {
     // Create proper rupee counter using centralized component
     const rupeeCounter = createRupeeCounter(window.gameState.playerData.rupeeCount);
     const rupeeCounterManager = createRupeeCounterManager(rupeeCounter.rupeeCounterOverlay, window.gameState.playerData.rupeeCount);
+    rupeeCounterManager.init();
+
+    // Make globally accessible
+    window.currentRupeeManager = rupeeCounterManager;
 
     // Create player using modular system (ensures proper animations and input handling)
     // Important: Create a NEW player object for secret room to avoid "already has parent" error
