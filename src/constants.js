@@ -2,7 +2,7 @@ export const scaleFactor = 4;
 
 export const dialogueData = {
   computer: `This is my computer. This is where I love to code and complete work for Abelon!\nI also play and make games + music!
-        Here is my <a href="https://github.com/Jam-cpu" target="_blank">Github</a>! and my SoundCloud: <a href="http://soundcloud.com/jambot1/" target="_blank">Lofi Jam</a>`,
+        Here is my <a href="https://github.com/Jam-cpu" target="_blank">Github</a>! and my SoundCloud: <a href="http://soundcloud.com/jambot1/" target="_blank">jamBot</a>`,
   bookshelves: `There are a lot of programming books on my shelves.`,
   "tv and sofa": `Kick back and relax to watch some great film and tv.\n <a href="https://letterboxd.com/LoFiJam/" target="_blank">Letterboxd</a>`,
   "small sofa": `This is my reading corner. I like to relax here and read programming books.`,
