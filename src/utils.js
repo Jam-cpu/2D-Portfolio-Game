@@ -52,8 +52,11 @@ export function displayPDF(pdfPath, onDisplayEnd)
   const pdfViewer = document.getElementById("pdf-viewer");
   const pdfClose = document.getElementById("pdf-close");
 
+  // Add base URL if path doesn't start with http
+  const fullPdfPath = pdfPath.startsWith('http') ? pdfPath : `${import.meta.env.BASE_URL}${pdfPath.replace(/^\//, '')}`;
+
   // Set the PDF source
-  pdfViewer.src = pdfPath;
+  pdfViewer.src = fullPdfPath;
 
   // Show the overlay
   pdfOverlay.style.display = "flex";

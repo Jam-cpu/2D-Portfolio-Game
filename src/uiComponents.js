@@ -104,7 +104,7 @@ export function createRupeeCounterManager(overlay, initialCount = 0) {
       });
 
       this.overlay.on("increment", (amount = 1) => {
-        this.increment(amount); 
+        this.increment(amount);
       });
 
       // Initialize display
@@ -126,11 +126,16 @@ export function openPDF(pdfPath) {
 }
 
 // Global function to display video overlay
-export function displayVideo(videoPath) {
+export function displayVideo(videoPath)
+{
   // Disable player movement
-  if (window.currentPlayer) {
+  if (window.currentPlayer)
+  {
     window.currentPlayer.isInDialogue = true;
   }
+
+  // Add base URL if path doesn't start with http
+  const fullVideoPath = videoPath.startsWith('http') ? videoPath : `${import.meta.env.BASE_URL}${videoPath.replace(/^\//, '')}`;
 
   // Create video overlay container
   const videoOverlay = document.createElement('div');
@@ -151,7 +156,7 @@ export function displayVideo(videoPath) {
 
   // Create video element
   const video = document.createElement('video');
-  video.src = videoPath;
+  video.src = fullVideoPath;
   video.style.cssText = `
     max-width: 80%;
     max-height: 80%;
@@ -221,11 +226,16 @@ export function displayVideo(videoPath) {
 }
 
 // Global function to display image overlay
-export function displayImage(imagePath) {
+export function displayImage(imagePath)
+{
   // Disable player movement
-  if (window.currentPlayer) {
+  if (window.currentPlayer)
+  {
     window.currentPlayer.isInDialogue = true;
   }
+
+  // Add base URL if path doesn't start with http
+  const fullImagePath = imagePath.startsWith('http') ? imagePath : `${import.meta.env.BASE_URL}${imagePath.replace(/^\//, '')}`;
 
   // Create image overlay container
   const imageOverlay = document.createElement('div');
@@ -246,7 +256,7 @@ export function displayImage(imagePath) {
 
   // Create image element
   const img = document.createElement('img');
-  img.src = imagePath;
+  img.src = fullImagePath;
   img.style.cssText = `
     max-width: 80%;
     max-height: 80%;
