@@ -23,7 +23,7 @@ export async function setupMap() {
 
   // Load map data to get boundary objects
   try {
-    const response = await fetch("/map.json");
+    const response = await fetch(`${import.meta.env.BASE_URL}map.json`);
     if (response.ok) {
       const mapData = await response.json();
 
@@ -110,7 +110,7 @@ export async function createInteractiveObjects(player) {
   const interactiveObjects = [];
 
   try {
-    const response = await fetch("/map.json");
+    const response = await fetch(`${import.meta.env.BASE_URL}map.json`);
     if (!response.ok) throw new Error("Failed to load map.json");
 
     const mapData = await response.json();
@@ -652,7 +652,7 @@ export async function initializeMainScene(playerPos = { x: 100, y: 200 }) {
   let spawnPos = playerPos; // Default to passed position
 
   try {
-    const response = await fetch("/map.json");
+    const response = await fetch(`${import.meta.env.BASE_URL}map.json`);
     if (response.ok) {
       mapData = await response.json();
 

@@ -96,7 +96,7 @@ export function createSecretRoomScene() {
 
     // Parse secret room map and create boundaries - simplified version
     try {
-      const response = await fetch("/secretmap.json");
+      const response = await fetch(`${import.meta.env.BASE_URL}secretmap.json`);
       if (response.ok) {
         const mapData = await response.json();
 
