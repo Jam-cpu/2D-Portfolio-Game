@@ -1,6 +1,6 @@
 // Secret Room Scene - Complete scene logic separated from main.js
 import { k } from "../kaboomCtx.js";
-import { createTerminalSystem, createFPSDisplay, createRupeeCounter, createRupeeCounterManager } from "../uiComponents.js";
+import { createTerminalSystem, createRupeeCounter, createRupeeCounterManager } from "../uiComponents.js";
 import { displayDialogue, setCamScale } from "../utils.js";
 import { scaleFactor } from "../constants.js";
 import { createPlayer, createPlayerAnimations } from "../playerSystem.js";
@@ -56,9 +56,6 @@ export function createSecretRoomScene() {
 
     // Add Secret Room specific map
     const map = k.add([k.sprite("secretRoomMap"), k.pos(0), k.scale(scaleFactor)]);
-
-    // Create FPS display using the centralized component
-    const fpsDisplay = createFPSDisplay();
 
     // Create proper rupee counter using centralized component
     const rupeeCounter = createRupeeCounter(window.gameState.playerData.rupeeCount);
@@ -296,9 +293,6 @@ export function createSecretRoomScene() {
     // Import and setup input handling
     const { setupSecretRoomInput } = await import("../input/secretRoomInput.js");
     setupSecretRoomInput(player, terminalSystem);
-
-    // Debug mode
-    k.onKeyPress("b", () => { k.debug.inspect = !k.debug.inspect; });
 
     // Music controls
     k.onKeyPress("m", () => { fadeOutMusic(); });

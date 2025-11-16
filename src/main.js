@@ -49,9 +49,6 @@ k.scene("main", async () => {
     }
   });
 
-  // Debug controls
-  k.onKeyPress("b", () => { k.debug.inspect = !k.debug.inspect; });
-
   // Music controls (placeholder for audio system)
   k.onKeyPress("m", () => { console.log("Fade out music"); });
   k.onKeyPress("n", () => { console.log("Fade in music"); });

@@ -1,7 +1,7 @@
 // Scene setup and management utilities
 import { k } from "./kaboomCtx.js";
 import { createPlayer, createPlayerAnimations } from "./playerSystem.js";
-import { createRupeeCounter, createRupeeCounterManager, createFPSDisplay, createTerminalSystem } from "./uiComponents.js";
+import { createRupeeCounter, createRupeeCounterManager, createTerminalSystem } from "./uiComponents.js";
 import { initializeCollisionSystems } from "./collisionSystem.js";
 import { createTerminalDialogue } from "./dialogueSystem.js";
 import { scaleFactor, dialogueData } from "./constants.js";
@@ -480,9 +480,6 @@ export function setupPlayer(x = 100, y = 200) {
 
 // Setup UI overlays
 export function setupUI(initialRupeeCount = 0) {
-  // Create FPS display
-  const fpsDisplay = createFPSDisplay();
-
   // Create rupee counter
   const rupeeOverlay = createRupeeCounter(initialRupeeCount);
   const rupeeCounterManager = createRupeeCounterManager(rupeeOverlay.rupeeCounterOverlay, initialRupeeCount);
@@ -492,7 +489,6 @@ export function setupUI(initialRupeeCount = 0) {
   window.currentRupeeManager = rupeeCounterManager;
 
   return {
-    fpsDisplay,
     rupeeOverlay,
     rupeeCounterManager,
   };
