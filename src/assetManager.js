@@ -3,8 +3,10 @@ import { k } from "./kaboomCtx.js";
 
 // Load all game assets
 export function loadAllAssets() {
+  const baseUrl = import.meta.env.BASE_URL;
+
   // Load player sprite sheet with movement animations
-  k.loadSprite("spritesheet", "/spritesheet.png", {
+  k.loadSprite("spritesheet", `${baseUrl}spritesheet.png`, {
     sliceX: 39,
     sliceY: 31,
     anims: {
@@ -18,19 +20,19 @@ export function loadAllAssets() {
   });
 
   // Load environment and UI sprites
-  k.loadSprite("map", "/map.png");
-  k.loadSprite("secretRoomMap", "/secretmap.png");
-  k.loadSprite("lampost", "/lampost.png");
-  k.loadSprite("rupee", "/rupee.png");
-  k.loadSprite("rupeeicon", "/rupeeicon.png");
-  k.loadSprite("rupeeiconresize", "/rupeeiconresize.png");
-  k.loadSprite("pot", "/pot.png");
-  k.loadSprite("planthalf", "/planthalf.png");
-  k.loadSprite("marioPipe", "/tubo-mario-small.png");
-  k.loadSprite("sign", "/sign.png");
+  k.loadSprite("map", `${baseUrl}map.png`);
+  k.loadSprite("secretRoomMap", `${baseUrl}secretmap.png`);
+  k.loadSprite("lampost", `${baseUrl}lampost.png`);
+  k.loadSprite("rupee", `${baseUrl}rupee.png`);
+  k.loadSprite("rupeeicon", `${baseUrl}rupeeicon.png`);
+  k.loadSprite("rupeeiconresize", `${baseUrl}rupeeiconresize.png`);
+  k.loadSprite("pot", `${baseUrl}pot.png`);
+  k.loadSprite("planthalf", `${baseUrl}planthalf.png`);
+  k.loadSprite("marioPipe", `${baseUrl}tubo-mario-small.png`);
+  k.loadSprite("sign", `${baseUrl}sign.png`);
 
   // Load chicken sprite sheet with various animations
-  k.loadSprite("chicken", "/Chicken Sprite Sheet.png", {
+  k.loadSprite("chicken", `${baseUrl}Chicken Sprite Sheet.png`, {
     sliceX: 8,
     sliceY: 10,
     anims: {
@@ -43,12 +45,12 @@ export function loadAllAssets() {
   });
 
   // Load audio files
-  k.loadSound("background-music", "/Eterna City (Night).mp3");
-  k.loadSound("tp-press-start", "/TP_PressStart.wav");
-  k.loadSound("tp-get-rupee", "/TP_Get_Rupee.wav");
-  k.loadSound("rickroll", "/rickroll.mp3");
-  k.loadSound("pot-shatter", "/OOT_Pot_Shatter.wav");
-  k.loadSound("pipesound", "/pipesound.mp3");
+  k.loadSound("background-music", `${baseUrl}Eterna City (Night).mp3`);
+  k.loadSound("tp-press-start", `${baseUrl}TP_PressStart.wav`);
+  k.loadSound("tp-get-rupee", `${baseUrl}TP_Get_Rupee.wav`);
+  k.loadSound("rickroll", `${baseUrl}rickroll.mp3`);
+  k.loadSound("pot-shatter", `${baseUrl}OOT_Pot_Shatter.wav`);
+  k.loadSound("pipesound", `${baseUrl}pipesound.mp3`);
 }
 
 // Asset preloading with progress tracking
