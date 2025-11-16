@@ -39,18 +39,6 @@ export function setupSecretRoomInput(player, terminalSystem) {
     }
   });
 
-  // Terminal toggle
-  k.onKeyPress("t", () => {
-    if (!player.isInDialogue && terminalSystem) {
-      if (terminalSystem.isTerminalActive()) {
-        terminalSystem.closeTerminal();
-      } else {
-        k.play("tp-press-start", { volume: 0.5 });
-        terminalSystem.openTerminal();
-      }
-    }
-  });
-
   // Escape key to close terminal
   k.onKeyPress("escape", () => {
     if (terminalSystem && terminalSystem.isTerminalActive()) {
