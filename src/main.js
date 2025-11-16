@@ -60,5 +60,33 @@ k.scene("main", async () => {
 // Secret Room Scene - Now using modular implementation
 k.scene("secretRoom", createSecretRoomScene());
 
-// Start the game
-k.go("main");
+// Start Screen Scene
+k.scene("start", () =>
+{
+  const startText = k.add([
+    k.text("Click to Start", { size: 32 }),
+    k.pos(k.center()),
+    k.anchor("center"),
+  ]);
+
+  // Pulse animation
+  startText.onUpdate(() =>
+  {
+    startText.opacity = k.wave(0.5, 1, k.time() * 2);
+  });
+
+  // Click anywhere to start
+  k.onClick(() =>
+  {
+    k.go("main");
+  });
+
+  // Or press any key to start
+  k.onKeyPress(() =>
+  {
+    k.go("main");
+  });
+});
+
+// Start with the start screen
+k.go("start");
